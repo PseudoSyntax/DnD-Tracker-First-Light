@@ -40,14 +40,17 @@
       body {
         display: flex;
         justify-content: center;
-        align-items: center;
-        padding: 28px;
+        align-items: stretch;
+        padding: 0;
       }
       .map-page {
-        width: min(1300px, 100%);
+        width: 100vw;
+        max-width: none;
         background: rgba(10, 15, 16, 0.8);
         border: 1px solid var(--edge);
-        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+        border-left: none;
+        border-right: none;
+        box-shadow: none;
       }
       .topbar {
         display: flex;
@@ -72,7 +75,7 @@
       }
       .map-layout {
         display: grid;
-        grid-template-columns: minmax(0, 1.7fr) minmax(320px, 0.8fr);
+        grid-template-columns: minmax(0, 2.2fr) minmax(260px, 0.8fr);
         gap: 18px;
         padding: 18px;
       }
