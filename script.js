@@ -1,112 +1,326 @@
-const sessions = [
-  {
-    number: "Session 01",
-    date: "Moon 3, 1177",
-    title: "The Lantern in the Ashes",
-    summary:
-      "The party followed a broken trail of lantern light into a forgotten watchtower, where the first hint of the Black Lantern’s purpose was etched into the stone walls. The keepers of Emberfall bowed to the old oath and invited the heroes into their fading story.",
-    tags: ["Watchtower", "Oath", "Mystery"],
-    image:
-      "https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=900&q=80"
-  },
-  {
-    number: "Session 02",
-    date: "Moon 14, 1177",
-    title: "Whispers Beneath the Bridge",
-    summary:
-      "The road to Briar Creek narrowed into a ruined stone bridge haunted by voices trapped in the river. A fallen trader’s ledger led the party to a hidden smuggling route and the first confirmed link to the cult’s supply chain.",
-    tags: ["Bridge", "Smugglers", "Investigation"],
-    image:
-      "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=900&q=80"
-  },
-  {
-    number: "Session 03",
-    date: "Moon 26, 1177",
-    title: "Ashes of the Orchard",
-    summary:
-      "A once-proud orchard became a field of charred roots and ghostly fruit. The group uncovered a ritual site beneath the soil, preserving the memory of a ritual that drained life from the land and left behind a sealed sigil carved into the earth.",
-    tags: ["Ritual", "Forest", "Tragedy"],
-    image:
-      "https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&w=900&q=80"
-  },
-  {
-    number: "Session 04",
-    date: "Moon 8, 1178",
-    title: "The Bell in the Hollow",
-    summary:
-      "At the edge of the moor, a cracked bell tolled from beneath a collapsed shrine. A lone survivor revealed that the cult had stolen the last surviving ember from the town’s ancestral flame, condemning the valley to a slow and hungry winter.",
-    tags: ["Shrine", "Bell", "Sacrifice"],
-    image:
-      "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=900&q=80"
-  },
-  {
-    number: "Session 05",
-    date: "Moon 19, 1178",
-    title: "The Broken Crown",
-    summary:
-      "The party stole into a ruined palace to find one of the crown’s relic shards, only to awaken a sleeping guardian bound to the old kings. In a battle of steel and memory, they earned the right to carry the crown’s final secret into the wilds.",
-    tags: ["Palace", "Guardian", "Relic"],
-    image:
-      "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=900&q=80"
-  },
-  {
-    number: "Session 06",
-    date: "Moon 2, 1179",
-    title: "The Rook and the Riven Sky",
-    summary:
-      "The party traced the cult’s leaders to a mountain monastery where the stars were being studied as living scripture. A catastrophic omen split the sky, and the survivors realized that the ritual was not simply to destroy the land — it was to rewrite its fate.",
-    tags: ["Monastery", "Celestial", "Prophecy"],
-    image:
-      "https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=900&q=80"
-  },
-  {
-    number: "Session 07",
-    date: "Moon 10, 1179",
-    title: "First Light",
-    summary:
-      "At the heart of the old observatory, the party confronted the cult’s high priest beneath the rising dawn. When the fractured relic was restored to the mountain’s heart, the first true sunrise in years broke over the valley and the campaign’s first arc was finally sealed.",
-    tags: ["Finale", "Dawn", "Revelation"],
-    image:
-      "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=900&q=80"
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #0d1115;
+  --panel: rgba(14, 20, 22, 0.78);
+  --panel-strong: rgba(8, 12, 14, 0.88);
+  --panel-light: rgba(255, 255, 255, 0.06);
+  --ink: #f6f0e1;
+  --muted: #d7d0c3;
+  --gold: #d7bb74;
+  --gold-soft: #f0d494;
+  --sage: #7a9b73;
+  --shadow: rgba(0, 0, 0, 0.38);
+  --edge: rgba(255, 255, 255, 0.08);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at center, rgba(52, 81, 67, 0.2), transparent 30%),
+    linear-gradient(135deg, #050909 0%, #0d1713 35%, #121b1d 100%);
+  color: var(--ink);
+  font-family: "Inter", sans-serif;
+}
+
+button,
+img {
+  display: block;
+  max-width: 100%;
+}
+
+button {
+  font: inherit;
+}
+
+.campaign-shell {
+  width: min(1200px, calc(100% - 28px));
+  margin: 38px auto;
+  background: rgba(10, 15, 16, 0.72);
+  border: 1px solid var(--edge);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.34);
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  gap: 20px;
+  padding: 24px 28px 18px;
+  border-bottom: 1px solid var(--edge);
+  background: rgba(10, 13, 14, 0.72);
+}
+
+.brand-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tag {
+  margin: 0;
+  font-size: 0.7rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--gold-soft);
+  font-weight: 700;
+}
+
+.brand-wrap h1,
+.chapter-hero h2,
+.panel-heading h3 {
+  margin: 0;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-weight: 700;
+  line-height: 0.9;
+}
+
+.brand-wrap h1 {
+  font-size: clamp(2.4rem, 5vw, 4rem);
+  letter-spacing: -0.05em;
+}
+
+.campaign-meta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.campaign-meta span {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 8px 12px;
+  font-size: 0.74rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.chapter-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(260px, 0.8fr);
+  gap: 18px;
+  padding: 18px;
+}
+
+.chapter-hero {
+  position: relative;
+  min-height: 560px;
+  background-size: cover;
+  background-position: center;
+  border: 1px solid var(--edge);
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
+}
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(8, 10, 11, 0.76), rgba(12, 16, 18, 0.3) 40%, rgba(12, 16, 18, 0.18));
+}
+
+.hero-content {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
+  padding: 38px 32px 30px;
+  max-width: 68%;
+}
+
+.chapter-kicker {
+  margin: 0 0 12px;
+  color: var(--gold-soft);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.chapter-hero h2 {
+  font-size: clamp(3rem, 4vw, 5rem);
+  line-height: 0.88;
+  letter-spacing: -0.06em;
+  margin-bottom: 18px;
+}
+
+#hero-summary {
+  margin: 0;
+  max-width: 52ch;
+  color: rgba(246, 240, 225, 0.82);
+  line-height: 1.7;
+  font-size: 1.02rem;
+}
+
+.hero-meta {
+  margin-top: 24px;
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.hero-meta span {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(6, 9, 11, 0.44);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 8px 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.chapter-panel {
+  background: rgba(14, 19, 22, 0.7);
+  border: 1px solid var(--edge);
+  padding: 18px 18px 14px;
+}
+
+.panel-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.panel-heading h3 {
+  font-size: clamp(2rem, 3vw, 2.8rem);
+}
+
+.chapter-list {
+  display: grid;
+  gap: 12px;
+}
+
+.chapter-tile {
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(255, 255, 255, 0.02);
+  text-align: left;
+  padding: 0;
+  color: var(--ink);
+  overflow: hidden;
+  cursor: pointer;
+  min-height: 118px;
+  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.chapter-tile:not(:disabled):hover {
+  transform: translateY(-1px);
+  border-color: rgba(215, 187, 116, 0.7);
+}
+
+.chapter-tile.active {
+  border-color: rgba(215, 187, 116, 0.85);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
+}
+
+.chapter-tile:disabled {
+  cursor: default;
+}
+
+.chapter-tile img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.72) saturate(0.7);
+}
+
+.chapter-tile.locked img {
+  filter: grayscale(0.8) brightness(0.28) saturate(0.35);
+}
+
+.chapter-tile .tile-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(5, 8, 10, 0.18), rgba(5, 8, 10, 0.72));
+}
+
+.chapter-tile .tile-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  justify-content: end;
+  padding: 16px 14px 12px;
+  gap: 6px;
+}
+
+.tile-number,
+.tile-status {
+  font-size: 0.64rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.tile-number {
+  color: var(--gold-soft);
+}
+
+.tile-status {
+  color: rgba(246, 240, 225, 0.8);
+}
+
+.chapter-tile.locked .tile-status {
+  color: rgba(246, 240, 225, 0.5);
+}
+
+.tile-name {
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(1.5rem, 2.3vw, 2rem);
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+}
+
+.chapter-tile.locked {
+  opacity: 0.74;
+}
+
+@media (max-width: 900px) {
+  .chapter-layout {
+    grid-template-columns: 1fr;
   }
-];
 
-const sessionList = document.getElementById("session-list");
-const galleryGrid = document.getElementById("gallery-grid");
-const sessionCount = document.getElementById("session-count");
+  .hero-content {
+    max-width: 100%;
+  }
+}
 
-sessionCount.textContent = sessions.length;
+@media (max-width: 560px) {
+  .campaign-shell {
+    width: min(100% - 12px, 1200px);
+    margin: 18px auto;
+  }
 
-sessionList.innerHTML = sessions
-  .map(
-    (session) => `
-      <article class="session-page">
-        <div class="session-visual">
-          <img src="${session.image}" alt="${session.title} artwork" />
-        </div>
-        <div class="session-details">
-          <div class="session-header">
-            <span class="session-number">${session.number}</span>
-            <span class="session-date">${session.date}</span>
-          </div>
-          <h4>${session.title}</h4>
-          <p class="session-summary">${session.summary}</p>
-          <div class="session-tags">
-            ${session.tags.map((tag) => `<span>${tag}</span>`).join("")}
-          </div>
-        </div>
-      </article>
-    `
-  )
-  .join("");
+  .topbar {
+    padding: 18px 18px 14px;
+    align-items: flex-start;
+    flex-direction: column;
+  }
 
-galleryGrid.innerHTML = sessions
-  .map(
-    (session) => `
-      <figure class="gallery-item">
-        <img src="${session.image}" alt="${session.title} memory" />
-        <figcaption>${session.title}</figcaption>
-      </figure>
-    `
-  )
-  .join("");
+  .chapter-layout {
+    padding: 12px;
+  }
+
+  .chapter-hero {
+    min-height: 440px;
+  }
+
+  .hero-content {
+    padding: 24px 22px 20px;
+  }
+}
