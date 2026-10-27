@@ -1,326 +1,144 @@
-* {
-  box-sizing: border-box;
-}
-
-:root {
-  --bg: #0d1115;
-  --panel: rgba(14, 20, 22, 0.78);
-  --panel-strong: rgba(8, 12, 14, 0.88);
-  --panel-light: rgba(255, 255, 255, 0.06);
-  --ink: #f6f0e1;
-  --muted: #d7d0c3;
-  --gold: #d7bb74;
-  --gold-soft: #f0d494;
-  --sage: #7a9b73;
-  --shadow: rgba(0, 0, 0, 0.38);
-  --edge: rgba(255, 255, 255, 0.08);
-}
-
-html {
-  scroll-behavior: smooth;
-}
-
-body {
-  margin: 0;
-  min-height: 100vh;
-  background:
-    radial-gradient(circle at center, rgba(52, 81, 67, 0.2), transparent 30%),
-    linear-gradient(135deg, #050909 0%, #0d1713 35%, #121b1d 100%);
-  color: var(--ink);
-  font-family: "Inter", sans-serif;
-}
-
-button,
-img {
-  display: block;
-  max-width: 100%;
-}
-
-button {
-  font: inherit;
-}
-
-.campaign-shell {
-  width: min(1200px, calc(100% - 28px));
-  margin: 38px auto;
-  background: rgba(10, 15, 16, 0.72);
-  border: 1px solid var(--edge);
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.34);
-}
-
-.topbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: end;
-  gap: 20px;
-  padding: 24px 28px 18px;
-  border-bottom: 1px solid var(--edge);
-  background: rgba(10, 13, 14, 0.72);
-}
-
-.brand-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.tag {
-  margin: 0;
-  font-size: 0.7rem;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: var(--gold-soft);
-  font-weight: 700;
-}
-
-.brand-wrap h1,
-.chapter-hero h2,
-.panel-heading h3 {
-  margin: 0;
-  font-family: "Cormorant Garamond", Georgia, serif;
-  font-weight: 700;
-  line-height: 0.9;
-}
-
-.brand-wrap h1 {
-  font-size: clamp(2.4rem, 5vw, 4rem);
-  letter-spacing: -0.05em;
-}
-
-.campaign-meta {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-
-.campaign-meta span {
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: rgba(255, 255, 255, 0.03);
-  padding: 8px 12px;
-  font-size: 0.74rem;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.chapter-layout {
-  display: grid;
-  grid-template-columns: minmax(0, 1.7fr) minmax(260px, 0.8fr);
-  gap: 18px;
-  padding: 18px;
-}
-
-.chapter-hero {
-  position: relative;
-  min-height: 560px;
-  background-size: cover;
-  background-position: center;
-  border: 1px solid var(--edge);
-  overflow: hidden;
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.04);
-}
-
-.hero-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(90deg, rgba(8, 10, 11, 0.76), rgba(12, 16, 18, 0.3) 40%, rgba(12, 16, 18, 0.18));
-}
-
-.hero-content {
-  position: relative;
-  z-index: 1;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: end;
-  padding: 38px 32px 30px;
-  max-width: 68%;
-}
-
-.chapter-kicker {
-  margin: 0 0 12px;
-  color: var(--gold-soft);
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  font-size: 0.72rem;
-  font-weight: 700;
-}
-
-.chapter-hero h2 {
-  font-size: clamp(3rem, 4vw, 5rem);
-  line-height: 0.88;
-  letter-spacing: -0.06em;
-  margin-bottom: 18px;
-}
-
-#hero-summary {
-  margin: 0;
-  max-width: 52ch;
-  color: rgba(246, 240, 225, 0.82);
-  line-height: 1.7;
-  font-size: 1.02rem;
-}
-
-.hero-meta {
-  margin-top: 24px;
-  display: flex;
-  gap: 14px;
-  flex-wrap: wrap;
-}
-
-.hero-meta span {
-  display: inline-flex;
-  align-items: center;
-  background: rgba(6, 9, 11, 0.44);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 8px 12px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  font-size: 0.72rem;
-  color: var(--muted);
-}
-
-.chapter-panel {
-  background: rgba(14, 19, 22, 0.7);
-  border: 1px solid var(--edge);
-  padding: 18px 18px 14px;
-}
-
-.panel-heading {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 16px;
-}
-
-.panel-heading h3 {
-  font-size: clamp(2rem, 3vw, 2.8rem);
-}
-
-.chapter-list {
-  display: grid;
-  gap: 12px;
-}
-
-.chapter-tile {
-  position: relative;
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  background: rgba(255, 255, 255, 0.02);
-  text-align: left;
-  padding: 0;
-  color: var(--ink);
-  overflow: hidden;
-  cursor: pointer;
-  min-height: 118px;
-  transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
-}
-
-.chapter-tile:not(:disabled):hover {
-  transform: translateY(-1px);
-  border-color: rgba(215, 187, 116, 0.7);
-}
-
-.chapter-tile.active {
-  border-color: rgba(215, 187, 116, 0.85);
-  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.2);
-}
-
-.chapter-tile:disabled {
-  cursor: default;
-}
-
-.chapter-tile img {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: brightness(0.72) saturate(0.7);
-}
-
-.chapter-tile.locked img {
-  filter: grayscale(0.8) brightness(0.28) saturate(0.35);
-}
-
-.chapter-tile .tile-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(5, 8, 10, 0.18), rgba(5, 8, 10, 0.72));
-}
-
-.chapter-tile .tile-content {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  height: 100%;
-  flex-direction: column;
-  justify-content: end;
-  padding: 16px 14px 12px;
-  gap: 6px;
-}
-
-.tile-number,
-.tile-status {
-  font-size: 0.64rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  font-weight: 700;
-}
-
-.tile-number {
-  color: var(--gold-soft);
-}
-
-.tile-status {
-  color: rgba(246, 240, 225, 0.8);
-}
-
-.chapter-tile.locked .tile-status {
-  color: rgba(246, 240, 225, 0.5);
-}
-
-.tile-name {
-  font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: clamp(1.5rem, 2.3vw, 2rem);
-  line-height: 0.9;
-  letter-spacing: -0.04em;
-}
-
-.chapter-tile.locked {
-  opacity: 0.74;
-}
-
-@media (max-width: 900px) {
-  .chapter-layout {
-    grid-template-columns: 1fr;
+const chapters = [
+  {
+    number: 1,
+    title: "The Whispering Forest",
+    location: "Forest of Hollow Pine",
+    session: "Session 01",
+    summary:
+      "The party enters the Blackbriar frontier, where a forgotten lantern is said to have warmed the land before the first winter of ruin. Old roots sway like whispers, and every trail seems to remember the names of those who are already lost.",
+    snippet: "A forest of ash and moonlight where a lantern-first omen sets the campaign in motion.",
+    image:
+      "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1200&q=80"
+  },
+  {
+    number: 2,
+    title: "Ashes of the Moor",
+    location: "The Emberfen",
+    session: "Session 02",
+    summary:
+      "A ruined keep rises from a field of smoldering heather, where the cult’s first ash-mark is found beneath a collapsed bell tower. The air tastes of smoke and prophecy.",
+    snippet: "A burned moor of ruined keeps, bell towers, and ash-marked cult sigils.",
+    image:
+      "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80"
+  },
+  {
+    number: 3,
+    title: "The Shattered Tide",
+    location: "Nightmere Coast",
+    session: "Session 03",
+    summary:
+      "A drowned chapel and black tide pull the party toward an enemy they cannot name. Strange sea sigils pulse beneath the moon, and the dead follow the sound of bells across the sand.",
+    snippet: "A moonlit coast haunted by drowned shrines and a dark sea ritual.",
+    image:
+      "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1200&q=80"
+  },
+  {
+    number: 4,
+    title: "The Iron Ridge",
+    location: "Stormglass Peaks",
+    session: "Session 04",
+    summary:
+      "The mountains answer with thunder and glacier-cold silence. Within the ruined fortress, a crown of stormsteel is hidden beyond a door that only opens to a vow.",
+    snippet: "A thunder-ridden mountain pass guarding a broken crown of stormsteel.",
+    image:
+      "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80"
+  },
+  {
+    number: 5,
+    title: "The Glass Marsh",
+    location: "Mire of Sable Reed",
+    session: "Session 05",
+    summary:
+      "The marsh gleams like broken glass beneath the twilight. The party follows a trail of lantern-light through reeds that whisper in a hundred old dialects, each one naming a forbidden oath.",
+    snippet: "A mirrored swamp where lanterns flicker through reeds and old oaths.",
+    image:
+      "https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&w=1200&q=80"
+  },
+  {
+    number: 6,
+    title: "The Vault of Echoes",
+    location: "Lair of Silent Bells",
+    session: "Session 06",
+    summary:
+      "Beneath the ruins of a collapsed citadel, the party uncovers a chamber of listening stone where every memory is stored in a different bell tone. The cult’s plan becomes more dreadful and more intimate.",
+    snippet: "A hidden vault of resonant stone and memory-born danger.",
+    image:
+      "https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=1200&q=80"
+  },
+  {
+    number: 7,
+    title: "The Hollow Crown",
+    location: "Fane of Last Winter",
+    session: "Session 07",
+    summary:
+      "A dead throne room opens beneath a frozen shrine, revealing the final living remnant of a kingdom that chose ritual over mercy. The party gains the choice to either break or wear the crown’s burden.",
+    snippet: "A frozen shrine and a throne room where old kings do not rest quietly.",
+    image:
+      "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=900&q=80"
+  },
+  {
+    number: 8,
+    title: "First Dawn",
+    location: "Skyreach Observatory",
+    session: "Session 08",
+    summary:
+      "At the peak of the world, the signal of the first dawn waits under a temple of stars. The final cost of the ritual is no longer hidden; it is carried in the hands of the heroes who chose to stand against it.",
+    snippet: "The campaign ends beneath a rising sky and the first true dawn.",
+    image:
+      "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1200&q=80"
   }
+];
 
-  .hero-content {
-    max-width: 100%;
-  }
+const chapterHero = document.getElementById("chapter-hero");
+const chapterList = document.getElementById("chapter-list");
+const heroTitle = document.getElementById("hero-title");
+const heroSummary = document.getElementById("hero-summary");
+const heroLocation = document.getElementById("hero-location");
+const heroSession = document.getElementById("hero-session");
+
+let activeChapter = 0;
+
+function renderChapters() {
+  chapterList.innerHTML = chapters
+    .map((chapter, index) => {
+      const selected = index === activeChapter;
+      return `
+        <button
+          class="chapter-tile ${selected ? "active" : ""}"
+          data-index="${index}"
+          type="button"
+          aria-label="${chapter.title}"
+        >
+          <img src="${chapter.image}" alt="${chapter.title}" />
+          <div class="tile-overlay"></div>
+          <div class="tile-content">
+            <span class="tile-number">Chapter ${chapter.number}</span>
+            <span class="tile-name">${chapter.title}</span>
+            <span class="tile-status">${chapter.session}</span>
+            <span class="tile-snippet">${chapter.snippet}</span>
+          </div>
+        </button>
+      `;
+    })
+    .join("");
+
+  chapterList.querySelectorAll(".chapter-tile").forEach((button) => {
+    button.addEventListener("click", () => {
+      activeChapter = Number(button.dataset.index);
+      renderHero();
+      renderChapters();
+    });
+  });
 }
 
-@media (max-width: 560px) {
-  .campaign-shell {
-    width: min(100% - 12px, 1200px);
-    margin: 18px auto;
-  }
-
-  .topbar {
-    padding: 18px 18px 14px;
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .chapter-layout {
-    padding: 12px;
-  }
-
-  .chapter-hero {
-    min-height: 440px;
-  }
-
-  .hero-content {
-    padding: 24px 22px 20px;
-  }
+function renderHero() {
+  const chapter = chapters[activeChapter];
+  chapterHero.style.backgroundImage = `linear-gradient(90deg, rgba(9, 12, 14, 0.78), rgba(9, 12, 14, 0.28)), url("${chapter.image}")`;
+  heroTitle.textContent = chapter.title;
+  heroSummary.textContent = chapter.summary;
+  heroLocation.textContent = chapter.location;
+  heroSession.textContent = chapter.session;
 }
+
+renderHero();
+renderChapters();

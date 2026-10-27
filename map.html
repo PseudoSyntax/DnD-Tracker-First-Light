@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>First Light | Interactive Campaign Map</title>
+    <meta
+      name="description"
+      content="Interactive campaign map for the First Light adventure."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      * { box-sizing: border-box; }
+      :root {
+        --bg: #0b1114;
+        --panel: rgba(14, 18, 21, 0.86);
+        --panel-soft: rgba(255, 255, 255, 0.04);
+        --gold: #d9b56b;
+        --ink: #f4ead7;
+        --muted: #d5cdb8;
+        --edge: rgba(255,255,255,0.09);
+      }
+      html, body {
+        margin: 0;
+        min-height: 100%;
+        height: 100%;
+        background:
+          radial-gradient(circle at top, rgba(94, 119, 106, 0.16), transparent 32%),
+          linear-gradient(135deg, #06090b 0%, #0f1719 35%, #111b20 100%);
+        color: var(--ink);
+        font-family: "Inter", sans-serif;
+      }
+      body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 28px;
+      }
+      .map-page {
+        width: min(1200px, 100%);
+        background: rgba(10, 15, 16, 0.8);
+        border: 1px solid var(--edge);
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.35);
+      }
+      .topbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        padding: 18px 22px;
+        border-bottom: 1px solid var(--edge);
+      }
+      .back-link {
+        text-decoration: none;
+        color: var(--muted);
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        font-size: 0.72rem;
+        font-weight: 700;
+      }
+      .header-title {
+        font-family: "Cormorant Garamond", Georgia, serif;
+        font-size: clamp(2.2rem, 4vw, 3.4rem);
+        margin: 0;
+      }
+      .map-layout {
+        display: grid;
+        grid-template-columns: minmax(0, 1.7fr) minmax(260px, 0.7fr);
+        gap: 18px;
+        padding: 18px;
+      }
+      .map-stage {
+        position: relative;
+        border: 1px solid var(--edge);
+        background: #0d1113;
+        overflow: hidden;
+      }
+      .map-stage img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        filter: saturate(0.85) contrast(1.08);
+      }
+      .map-pin {
+        position: absolute;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: radial-gradient(circle, #f7e7b4 0%, #d7b157 45%, #8d671e 100%);
+        border: 2px solid rgba(255,255,255,0.8);
+        box-shadow: 0 0 0 7px rgba(215,177,87,0.2), 0 0 18px rgba(215,177,87,0.45);
+        transform: translate(-50%, -50%);
+        cursor: pointer;
+      }
+      .map-pin:hover {
+        box-shadow: 0 0 0 7px rgba(215,177,87,0.26), 0 0 20px rgba(215,177,87,0.6);
+      }
+      .map-details {
+        background: rgba(255,255,255,0.02);
+        border: 1px solid var(--edge);
+        padding: 18px;
+      }
+      .panel-kicker {
+        margin: 0 0 8px;
+        color: var(--gold);
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        font-size: 0.66rem;
+        font-weight: 700;
+      }
+      .chapter-summary h2 {
+        margin: 0 0 12px;
+        font-family: "Cormorant Garamond", Georgia, serif;
+        font-size: clamp(2.2rem, 3vw, 3rem);
+        line-height: 0.9;
+      }
+      .chapter-summary p {
+        color: var(--muted);
+        line-height: 1.7;
+        margin: 0 0 18px;
+      }
+      .meta-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .meta-list span {
+        display: inline-block;
+        border: 1px solid rgba(255,255,255,0.08);
+        background: rgba(255,255,255,0.025);
+        padding: 8px 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-size: 0.68rem;
+        color: var(--muted);
+      }
+      @media (max-width: 860px) {
+        .map-layout {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="map-page">
+      <header class="topbar">
+        <a class="back-link" href="index.html">← Return to Journal</a>
+        <h1 class="header-title">Campaign Atlas</h1>
+      </header>
+
+      <main class="map-layout">
+        <div class="map-stage">
+          <img src="image-1.png" alt="Interactive campaign map" />
+        </div>
+
+        <aside class="map-details" aria-live="polite">
+          <p class="panel-kicker">Waypoint</p>
+          <div class="chapter-summary">
+            <h2 id="map-title">The Whispering Forest</h2>
+            <p id="map-summary">
+              The party enters the Blackbriar frontier, where a forgotten lantern is said to have warmed the land before the first winter of ruin.
+            </p>
+            <div class="meta-list">
+              <span id="map-location">Forest of Hollow Pine</span>
+              <span id="map-session">Session 01</span>
+            </div>
+          </div>
+        </aside>
+      </main>
+    </div>
+
+    <script>
+      const chapters = [
+        {
+          title: "The Whispering Forest",
+          location: "Forest of Hollow Pine",
+          session: "Session 01",
+          summary: "The party enters the Blackbriar frontier, where a forgotten lantern is said to have warmed the land before the first winter of ruin.",
+          x: 26,
+          y: 32
+        },
+        {
+          title: "Ashes of the Moor",
+          location: "The Emberfen",
+          session: "Session 02",
+          summary: "A ruined keep rises from a field of smoldering heather, where the cult’s first ash-mark is found beneath a collapsed bell tower.",
+          x: 48,
+          y: 49
+        },
+        {
+          title: "The Shattered Tide",
+          location: "Nightmere Coast",
+          session: "Session 03",
+          summary: "A drowned chapel and black tide pull the party toward an enemy they cannot name, where sea sigils pulse beneath the moon.",
+          x: 75,
+          y: 67
+        },
+        {
+          title: "The Iron Ridge",
+          location: "Stormglass Peaks",
+          session: "Session 04",
+          summary: "The mountains answer with thunder and glacier-cold silence. Within the ruined fortress, a crown of stormsteel is hidden.",
+          x: 35,
+          y: 68
+        },
+        {
+          title: "The Glass Marsh",
+          location: "Mire of Sable Reed",
+          session: "Session 05",
+          summary: "The marsh gleams like broken glass beneath the twilight, full of whispering reeds and old forbidden oaths.",
+          x: 58,
+          y: 78
+        },
+        {
+          title: "The Vault of Echoes",
+          location: "Lair of Silent Bells",
+          session: "Session 06",
+          summary: "Beneath the ruins of a collapsed citadel, a chamber of listening stone stores every memory in a different bell tone.",
+          x: 66,
+          y: 42
+        },
+        {
+          title: "The Hollow Crown",
+          location: "Fane of Last Winter",
+          session: "Session 07",
+          summary: "A dead throne room opens beneath a frozen shrine, revealing the final living remnant of a kingdom that chose ritual over mercy.",
+          x: 23,
+          y: 74
+        },
+        {
+          title: "First Dawn",
+          location: "Skyreach Observatory",
+          session: "Session 08",
+          summary: "At the peak of the world, the signal of the first dawn waits under a temple of stars and the campaign’s final cost.",
+          x: 50,
+          y: 20
+        }
+      ];
+
+      const mapStage = document.querySelector('.map-stage');
+      const mapTitle = document.getElementById('map-title');
+      const mapSummary = document.getElementById('map-summary');
+      const mapLocation = document.getElementById('map-location');
+      const mapSession = document.getElementById('map-session');
+
+      function updateMapDetails(chapter) {
+        mapTitle.textContent = chapter.title;
+        mapSummary.textContent = chapter.summary;
+        mapLocation.textContent = chapter.location;
+        mapSession.textContent = chapter.session;
+      }
+
+      chapters.forEach((chapter, index) => {
+        const pin = document.createElement('button');
+        pin.type = 'button';
+        pin.className = 'map-pin';
+        pin.setAttribute('aria-label', `${chapter.title} marker`);
+        pin.style.left = `${chapter.x}%`;
+        pin.style.top = `${chapter.y}%`;
+        pin.title = chapter.title;
+        pin.addEventListener('click', () => updateMapDetails(chapter));
+        pin.addEventListener('mouseenter', () => updateMapDetails(chapter));
+        mapStage.appendChild(pin);
+
+        if (index === 0) {
+          updateMapDetails(chapter);
+        }
+      });
+    </script>
+  </body>
+</html>
