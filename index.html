@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>DnD Tracker: First Light</title>
+    <meta
+      name="description"
+      content="A book-inspired DnD campaign tracker chronicling pivotal sessions and memories from the First Light campaign."
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="top-bar">
+        <div class="brand-block">
+          <p class="eyebrow">Campaign Chronicle</p>
+          <h1>First Light</h1>
+        </div>
+        <nav class="top-nav" aria-label="Main navigation">
+          <a href="#journal">Journal</a>
+          <a href="#sessions">Sessions</a>
+          <a href="#gallery">Gallery</a>
+        </nav>
+      </header>
+
+      <main class="book-layout">
+        <section class="title-page" id="journal">
+          <div class="title-copy">
+            <p class="chapter-label">Volume I</p>
+            <h2>Across the Emberfall Road</h2>
+            <p class="intro-text">
+              A faithful record of the party’s journey through moonlit ruins, broken oaths,
+              and the flicker of hope that keeps the lantern lit.
+            </p>
+            <div class="seal">
+              <span>Session Log</span>
+              <strong>01–08</strong>
+            </div>
+          </div>
+          <div class="cover-art" aria-label="Illustrated adventure cover art">
+            <div class="art-frame">
+              <div class="moon"></div>
+              <div class="mist mist-one"></div>
+              <div class="mist mist-two"></div>
+              <div class="tower"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="stats-row">
+          <article>
+            <span class="stat-label">Sessions</span>
+            <strong id="session-count">0</strong>
+          </article>
+          <article>
+            <span class="stat-label">Party</span>
+            <strong>4 adventurers</strong>
+          </article>
+          <article>
+            <span class="stat-label">Arc</span>
+            <strong>First Dawn</strong>
+          </article>
+          <article>
+            <span class="stat-label">Mood</span>
+            <strong>Hopeful / Uncertain</strong>
+          </article>
+        </section>
+
+        <section class="journal-section" id="sessions">
+          <div class="section-heading">
+            <p class="eyebrow">Recorded Moments</p>
+            <h3>Session Chronicle</h3>
+          </div>
+          <div class="book-pages" id="session-list"></div>
+        </section>
+
+        <section class="gallery-section" id="gallery">
+          <div class="section-heading">
+            <p class="eyebrow">Memory Vault</p>
+            <h3>Moments Worth Keeping</h3>
+          </div>
+          <div class="gallery-grid" id="gallery-grid"></div>
+        </section>
+      </main>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
