@@ -494,6 +494,30 @@
         return clamp(numericValue, MAP_EDGE_PADDING, 100 - MAP_EDGE_PADDING);
       }
 
+      function getPanLimits() {
+        const stageWidth = mapStage.clientWidth;
+        const stageHeight = mapStage.clientHeight;
+        const imageWidth = mapImage.naturalWidth || stageWidth;
+        const imageHeight = mapImage.naturalHeight || stageHeight;
+        const scaledWidth = imageWidth * zoom;
+        const scaledHeight = imageHeight * zoom;
+        const maxX = Math.max(0, (scaledWidth - stageWidth) / 2);
+        const maxY = Math.max(0, (scaledHeight - stageHeight) / 2);
+        return { maxX, maxY };
+      }
+
+      function syncPanPosition() {
+        const { maxX, maxY } = getPanLimits();
+        const currentX = Number(mapImage.dataset.offsetX || 0);
+        const currentY = Number(mapImage.dataset.offsetY || 0);
+        const nextX = clamp(currentX, -maxX, maxX);
+        const nextY = clamp(currentY, -maxY, maxY);
+
+        mapImage.dataset.offsetX = String(nextX);
+        mapImage.dataset.offsetY = String(nextY);
+        mapImage.style.transform = `translate(${nextX}px, ${nextY}px) scale(${zoom})`;
+      }
+
       function loadPoints() {
         try {
           const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
@@ -551,7 +575,7 @@
       }
 
       function applyZoom() {
-        mapImage.style.transform = `scale(${zoom})`;
+        syncPanPosition();
         updateZoomButtons();
       }
 
@@ -702,13 +726,16 @@
           const dy = event.clientY - dragPan.y;
           dragPan.x = event.clientX;
           dragPan.y = event.clientY;
+
           const image = mapImage;
-          const current = image.dataset.offsetX ? Number(image.dataset.offsetX) : 0;
-          const currentY = image.dataset.offsetY ? Number(image.dataset.offsetY) : 0;
-          const nextX = clamp(current + dx / zoom, -400, 400);
-          const nextY = clamp(currentY + dy / zoom, -300, 300);
-          image.dataset.offsetX = nextX;
-          image.dataset.offsetY = nextY;
+          const current = Number(image.dataset.offsetX || 0);
+          const currentY = Number(image.dataset.offsetY || 0);
+          const { maxX, maxY } = getPanLimits();
+          const nextX = clamp(current + dx / zoom, -maxX, maxX);
+          const nextY = clamp(currentY + dy / zoom, -maxY, maxY);
+
+          image.dataset.offsetX = String(nextX);
+          image.dataset.offsetY = String(nextY);
           image.style.transform = `translate(${nextX}px, ${nextY}px) scale(${zoom})`;
         }
       });
