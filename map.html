@@ -75,9 +75,12 @@
       }
       .map-layout {
         display: grid;
-        grid-template-columns: minmax(0, 2.2fr) minmax(260px, 0.8fr);
+        grid-template-columns: minmax(0, 1fr);
         gap: 18px;
         padding: 18px;
+      }
+      .map-layout.with-panel {
+        grid-template-columns: minmax(0, 2.2fr) minmax(260px, 0.8fr);
       }
       .map-stage-wrap {
         position: relative;
@@ -133,6 +136,34 @@
       .map-pin.selected {
         outline: 2px solid rgba(255,255,255,0.9);
       }
+      .panel-toggle {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        z-index: 5;
+        width: 42px;
+        height: 42px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid var(--edge);
+        background: rgba(10, 15, 16, 0.82);
+        color: var(--ink);
+        font-size: 1.2rem;
+        cursor: pointer;
+      }
+      .panel-toggle:hover {
+        border-color: rgba(215,181,107,0.75);
+      }
+      .map-details {
+        display: none;
+        background: rgba(255,255,255,0.02);
+        border: 1px solid var(--edge);
+        padding: 18px;
+      }
+      .map-layout.with-panel .map-details {
+        display: block;
+      }
       .zoom-controls {
         position: absolute;
         right: 14px;
@@ -159,11 +190,6 @@
       .zoom-controls button:disabled {
         opacity: 0.45;
         cursor: not-allowed;
-      }
-      .map-details {
-        background: rgba(255,255,255,0.02);
-        border: 1px solid var(--edge);
-        padding: 18px;
       }
       .panel-kicker {
         margin: 0 0 8px;
@@ -274,7 +300,7 @@
         font-size: 0.74rem;
       }
       @media (max-width: 860px) {
-        .map-layout {
+        .map-layout.with-panel {
           grid-template-columns: 1fr;
         }
         .map-stage,
@@ -292,8 +318,9 @@
         <h1 class="header-title">Campaign Atlas</h1>
       </header>
 
-      <main class="map-layout">
+      <main class="map-layout" id="mapLayout">
         <div class="map-stage-wrap">
+          <button id="panelToggleBtn" class="panel-toggle" type="button" aria-label="Toggle map details" aria-expanded="false">✎</button>
           <div class="map-stage" id="mapStage" aria-label="Campaign map viewport">
             <img class="map-image" src="image-1.png" alt="Interactive campaign map" />
             <div class="zoom-controls" aria-label="Map zoom controls">
@@ -458,6 +485,7 @@
         }
       ];
 
+      const mapLayout = document.getElementById('mapLayout');
       const mapStage = document.getElementById('mapStage');
       const mapImage = document.querySelector('.map-image');
       const titleInput = document.getElementById('titleInput');
@@ -479,6 +507,7 @@
       const deletePointBtn = document.getElementById('deletePointBtn');
       const zoomInBtn = document.getElementById('zoomInBtn');
       const zoomOutBtn = document.getElementById('zoomOutBtn');
+      const panelToggleBtn = document.getElementById('panelToggleBtn');
 
       let points = loadPoints();
       let selectedIndex = 0;
@@ -486,6 +515,7 @@
       let dragIndex = null;
       let zoom = 1;
       let dragPan = null;
+      let panelOpen = false;
 
       const MIN_ZOOM = 0.6;
       const MAX_ZOOM = 2.2;
@@ -519,6 +549,14 @@
         mapImage.dataset.offsetX = String(nextX);
         mapImage.dataset.offsetY = String(nextY);
         mapImage.style.transform = `translate(${nextX}px, ${nextY}px) scale(${zoom})`;
+      }
+
+      function setPanelOpen(nextState) {
+        panelOpen = nextState;
+        mapLayout.classList.toggle('with-panel', panelOpen);
+        panelToggleBtn.setAttribute('aria-expanded', String(panelOpen));
+        panelToggleBtn.textContent = panelOpen ? '✕' : '✎';
+        panelToggleBtn.title = panelOpen ? 'Hide map details' : 'Open map details';
       }
 
       function loadPoints() {
@@ -767,6 +805,10 @@
         }
       });
 
+      panelToggleBtn.addEventListener('click', () => {
+        setPanelOpen(!panelOpen);
+      });
+
       titleInput.addEventListener('input', () => readFormToSelection());
       locationInput.addEventListener('input', () => readFormToSelection());
       sessionInput.addEventListener('input', () => readFormToSelection());
@@ -874,6 +916,7 @@
       renderPins();
       syncFormToSelection();
       syncPublishButton();
+      setPanelOpen(false);
       applyZoom();
       setStatus('Editing enabled. Click a point to edit it, or add a new one.');
     </script>
