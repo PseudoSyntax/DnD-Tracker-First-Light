@@ -333,13 +333,13 @@
         <aside class="map-details" aria-live="polite">
           <p class="panel-kicker">Waypoint</p>
           <div class="chapter-summary">
-            <h2 id="map-title">The Whispering Forest</h2>
+            <h2 id="map-title">The Known World</h2>
             <p id="map-summary">
-              The party enters the Blackbriar frontier, where a forgotten lantern is said to have warmed the land before the first winter of ruin.
+              Across the broken frontier of the Old Kingdom, rival realms, haunted woods, and forgotten shrines shape the fate of the campaign. Some roads are safe, most are not, and every trail leads toward a story still waiting to be remembered.
             </p>
             <div class="meta-list">
-              <span id="map-location">Forest of Hollow Pine</span>
-              <span id="map-session">Session 01</span>
+              <span id="map-location">The First Light Campaign</span>
+              <span id="map-session">World Overview</span>
             </div>
           </div>
 
@@ -361,37 +361,37 @@
             <form class="point-form" id="pointForm">
               <label>
                 Title
-                <input id="titleInput" type="text" value="The Whispering Forest" />
+                <input id="titleInput" type="text" value="" placeholder="Select a location" />
               </label>
 
               <label>
                 Location
-                <input id="locationInput" type="text" value="Forest of Hollow Pine" />
+                <input id="locationInput" type="text" value="" placeholder="Location" />
               </label>
 
               <label>
                 Session
-                <input id="sessionInput" type="text" value="Session 01" />
+                <input id="sessionInput" type="text" value="" placeholder="Session" />
               </label>
 
               <label>
                 Image URL
-                <input id="imageInput" type="url" value="https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1200&q=80" />
+                <input id="imageInput" type="url" value="" placeholder="Image URL" />
               </label>
 
               <label>
                 Summary
-                <textarea id="summaryInput">The party enters the Blackbriar frontier, where a forgotten lantern is said to have warmed the land before the first winter of ruin.</textarea>
+                <textarea id="summaryInput" placeholder="Choose a point to view its description."></textarea>
               </label>
 
               <div class="coord-grid">
                 <label>
                   X %
-                  <input id="xInput" type="number" min="0" max="100" step="1" value="26" />
+                  <input id="xInput" type="number" min="0" max="100" step="1" value="50" />
                 </label>
                 <label>
                   Y %
-                  <input id="yInput" type="number" min="0" max="100" step="1" value="32" />
+                  <input id="yInput" type="number" min="0" max="100" step="1" value="50" />
                 </label>
               </div>
 
@@ -410,6 +410,15 @@
       const STORAGE_KEY = 'firstLightCampaignMapData';
       const TOKEN_STORAGE_KEY = 'firstLightGithubToken';
       const MAP_EDGE_PADDING = 8;
+      const WORLD_OVERVIEW = {
+        title: 'The Known World',
+        location: 'The First Light Campaign',
+        session: 'World Overview',
+        summary: 'Across the broken frontier of the Old Kingdom, rival realms, haunted woods, and forgotten shrines shape the fate of the campaign. Some roads are safe, most are not, and every trail leads toward a story still waiting to be remembered.',
+        image: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1200&q=80',
+        x: 50,
+        y: 50
+      };
       const DEFAULT_POINTS = [
         {
           title: 'The Whispering Forest',
@@ -510,7 +519,7 @@
       const panelToggleBtn = document.getElementById('panelToggleBtn');
 
       let points = loadPoints();
-      let selectedIndex = 0;
+      let selectedIndex = null;
       let addMode = false;
       let dragIndex = null;
       let zoom = 1;
@@ -629,8 +638,16 @@
       }
 
       function updateDetailPanel() {
-        const point = points[selectedIndex];
-        if (!point) return;
+        const point = selectedIndex !== null && points[selectedIndex] ? points[selectedIndex] : null;
+
+        if (!point) {
+          mapTitle.textContent = WORLD_OVERVIEW.title;
+          mapSummary.textContent = WORLD_OVERVIEW.summary;
+          mapLocation.textContent = WORLD_OVERVIEW.location;
+          mapSession.textContent = WORLD_OVERVIEW.session;
+          return;
+        }
+
         mapTitle.textContent = point.title;
         mapSummary.textContent = point.summary;
         mapLocation.textContent = point.location;
@@ -638,8 +655,20 @@
       }
 
       function syncFormToSelection() {
-        const point = points[selectedIndex];
-        if (!point) return;
+        const point = selectedIndex !== null && points[selectedIndex] ? points[selectedIndex] : null;
+
+        if (!point) {
+          titleInput.value = '';
+          locationInput.value = '';
+          sessionInput.value = '';
+          summaryInput.value = '';
+          imageInput.value = '';
+          xInput.value = 50;
+          yInput.value = 50;
+          updateDetailPanel();
+          return;
+        }
+
         titleInput.value = point.title;
         locationInput.value = point.location;
         sessionInput.value = point.session;
@@ -651,6 +680,7 @@
       }
 
       function readFormToSelection() {
+        if (selectedIndex === null) return;
         const point = points[selectedIndex];
         if (!point) return;
         point.title = titleInput.value.trim() || 'Unnamed Landmark';
@@ -723,13 +753,18 @@
       }
 
       function deleteSelectedPoint() {
+        if (selectedIndex === null) {
+          setStatus('Select a location before deleting it.');
+          return;
+        }
+
         if (points.length <= 1) {
           setStatus('At least one point must remain on the map.');
           return;
         }
 
         points.splice(selectedIndex, 1);
-        selectedIndex = Math.max(0, selectedIndex - 1);
+        selectedIndex = points.length ? 0 : null;
         persistPoints();
         renderPins();
         syncFormToSelection();
@@ -807,6 +842,9 @@
 
       panelToggleBtn.addEventListener('click', () => {
         setPanelOpen(!panelOpen);
+        if (!panelOpen) {
+          updateDetailPanel();
+        }
       });
 
       titleInput.addEventListener('input', () => readFormToSelection());
@@ -918,7 +956,7 @@
       syncPublishButton();
       setPanelOpen(false);
       applyZoom();
-      setStatus('Editing enabled. Click a point to edit it, or add a new one.');
+      setStatus('Click the pencil to view the world summary, or click a point to inspect a location.');
     </script>
   </body>
 </html>
