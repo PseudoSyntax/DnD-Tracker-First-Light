@@ -390,13 +390,11 @@
       const zoomOutBtn = document.getElementById('zoomOutBtn');
 
       let selectedIndex = null;
-      let addMode = false;
       let dragIndex = null;
       let dragPan = null;
       let zoom = 1;
       let panX = 0;
       let panY = 0;
-      let panelOpen = true;
       let editMode = false;
 
       const MIN_ZOOM = 0.6;
@@ -413,6 +411,25 @@
         return clamp(number, MAP_EDGE_PADDING, 100 - MAP_EDGE_PADDING);
       }
 
+      function getPanLimits() {
+        const stageWidth = mapStage.clientWidth;
+        const stageHeight = mapStage.clientHeight;
+        const imageWidth = mapImage.naturalWidth || stageWidth;
+        const imageHeight = mapImage.naturalHeight || stageHeight;
+        const scaledWidth = imageWidth * zoom;
+        const scaledHeight = imageHeight * zoom;
+        const maxX = Math.max(0, (scaledWidth - stageWidth) / 2);
+        const maxY = Math.max(0, (scaledHeight - stageHeight) / 2);
+        return { maxX, maxY };
+      }
+
+      function syncPanPosition() {
+        const { maxX, maxY } = getPanLimits();
+        panX = clamp(panX, -maxX, maxX);
+        panY = clamp(panY, -maxY, maxY);
+        mapViewport.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+      }
+
       function recenterMap() {
         zoom = 1;
         panX = 0;
@@ -422,11 +439,9 @@
       }
 
       function setPanelOpen(nextState) {
-        panelOpen = nextState;
-        const shouldShow = !editMode && panelOpen;
-        mapLayout.classList.toggle('with-panel', shouldShow);
-        panelToggleBtn.setAttribute('aria-expanded', String(shouldShow));
-        panelToggleBtn.title = shouldShow ? 'Hide map details' : 'Open map details';
+        mapLayout.classList.toggle('with-panel', !editMode && nextState);
+        panelToggleBtn.setAttribute('aria-expanded', String(!editMode && nextState));
+        panelToggleBtn.title = !editMode && nextState ? 'Hide map details' : 'Open map details';
       }
 
       function setEditMode(nextState) {
@@ -434,18 +449,26 @@
         editModeBtn.textContent = editMode ? 'On' : 'Off';
         editModeBtn.classList.toggle('is-on', editMode);
         editModeBtn.setAttribute('aria-pressed', String(editMode));
+        panelToggleBtn.textContent = '✎';
+        panelToggleBtn.setAttribute('aria-label', editMode ? 'Exit edit mode' : 'Enter edit mode');
+        setPanelOpen(!editMode);
+      }
 
-        if (editMode) {
-          panelOpen = false;
-          mapLayout.classList.remove('with-panel');
-          panelToggleBtn.setAttribute('aria-expanded', 'false');
-          panelToggleBtn.title = 'Open map details';
-        } else {
-          panelOpen = true;
-          mapLayout.classList.add('with-panel');
-          panelToggleBtn.setAttribute('aria-expanded', 'true');
-          panelToggleBtn.title = 'Hide map details';
-        }
+      function updateZoomButtons() {
+        zoomInBtn.disabled = zoom >= MAX_ZOOM;
+        zoomOutBtn.disabled = zoom <= MIN_ZOOM;
+      }
+
+      function applyZoom() {
+        syncPanPosition();
+        updateZoomButtons();
+      }
+
+      function zoomMap(direction) {
+        const next = clamp(zoom + direction * ZOOM_STEP, MIN_ZOOM, MAX_ZOOM);
+        if (next === zoom) return;
+        zoom = next;
+        applyZoom();
       }
 
       function updateDetailPanel() {
@@ -467,6 +490,27 @@
         locationDescription.innerHTML = `<strong>${point.location}:</strong> ${point.description || point.summary}`;
       }
 
+      function loadPoints() {
+        try {
+          const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+          if (Array.isArray(saved) && saved.length > 0) {
+            return saved.map((point) => ({
+              ...point,
+              x: normalizePointValue(point.x, 50),
+              y: normalizePointValue(point.y, 50),
+              description: point.description || point.summary || WORLD_OVERVIEW.description
+            }));
+          }
+        } catch (error) {
+          console.warn('Unable to load saved map points.', error);
+        }
+        return DEFAULT_POINTS;
+      }
+
+      function persistPoints() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(points));
+      }
+
       function renderPins() {
         const existingPins = mapViewport.querySelectorAll('.map-pin');
         existingPins.forEach((pin) => pin.remove());
@@ -483,21 +527,19 @@
           pin.addEventListener('click', (event) => {
             event.stopPropagation();
             selectedIndex = index;
-            addMode = false;
             renderPins();
             updateDetailPanel();
           });
 
           pin.addEventListener('pointerdown', (event) => {
             if (event.button !== 0) return;
+            event.preventDefault();
             if (!editMode) {
-              event.preventDefault();
               selectedIndex = index;
               renderPins();
               updateDetailPanel();
               return;
             }
-            event.preventDefault();
             dragIndex = index;
             selectedIndex = index;
             pin.setPointerCapture(event.pointerId);
@@ -514,7 +556,6 @@
           mapImage.addEventListener('load', syncPanPosition, { once: true });
         }
         setEditMode(false);
-        setPanelOpen(true);
         renderPins();
         updateDetailPanel();
         updateZoomButtons();
@@ -523,9 +564,6 @@
       mapStage.addEventListener('click', (event) => {
         if (event.target.closest('.map-pin')) return;
         if (event.target !== mapStage && !event.target.closest('.map-image')) return;
-
-        if (addMode) return;
-
         selectedIndex = null;
         renderPins();
         updateDetailPanel();
@@ -578,11 +616,7 @@
       });
 
       panelToggleBtn.addEventListener('click', () => {
-        if (editMode) {
-          setEditMode(false);
-          return;
-        }
-        setPanelOpen(!panelOpen);
+        setEditMode(!editMode);
       });
 
       editModeBtn.addEventListener('click', () => {
