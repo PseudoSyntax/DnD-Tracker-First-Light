@@ -396,7 +396,7 @@
       let zoom = 1;
       let panX = 0;
       let panY = 0;
-      let panelOpen = false;
+      let panelOpen = true;
       let editMode = false;
 
       const MIN_ZOOM = 0.6;
@@ -421,69 +421,6 @@
         updateZoomButtons();
       }
 
-      function setStatus(message) {
-        if (message) {
-          mapTitle.title = message;
-        }
-      }
-
-      function loadPoints() {
-        try {
-          const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-          if (Array.isArray(saved) && saved.length > 0) {
-            return saved.map((point) => ({
-              ...point,
-              x: normalizePointValue(point.x, 50),
-              y: normalizePointValue(point.y, 50),
-              description: point.description || point.summary || WORLD_OVERVIEW.description
-            }));
-          }
-        } catch (error) {
-          console.warn('Unable to load saved map points.', error);
-        }
-        return DEFAULT_POINTS;
-      }
-
-      function persistPoints() {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(points));
-      }
-
-      function getPanLimits() {
-        const stageWidth = mapStage.clientWidth;
-        const stageHeight = mapStage.clientHeight;
-        const imageWidth = mapImage.naturalWidth || stageWidth;
-        const imageHeight = mapImage.naturalHeight || stageHeight;
-        const scaledWidth = imageWidth * zoom;
-        const scaledHeight = imageHeight * zoom;
-        const maxX = Math.max(0, (scaledWidth - stageWidth) / 2);
-        const maxY = Math.max(0, (scaledHeight - stageHeight) / 2);
-        return { maxX, maxY };
-      }
-
-      function syncPanPosition() {
-        const { maxX, maxY } = getPanLimits();
-        panX = clamp(panX, -maxX, maxX);
-        panY = clamp(panY, -maxY, maxY);
-        mapViewport.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
-      }
-
-      function updateZoomButtons() {
-        zoomInBtn.disabled = zoom >= MAX_ZOOM;
-        zoomOutBtn.disabled = zoom <= MIN_ZOOM;
-      }
-
-      function applyZoom() {
-        syncPanPosition();
-        updateZoomButtons();
-      }
-
-      function zoomMap(direction) {
-        const nextZoom = clamp(zoom + direction * ZOOM_STEP, MIN_ZOOM, MAX_ZOOM);
-        if (nextZoom === zoom) return;
-        zoom = nextZoom;
-        applyZoom();
-      }
-
       function setPanelOpen(nextState) {
         panelOpen = nextState;
         const shouldShow = !editMode && panelOpen;
@@ -503,6 +440,11 @@
           mapLayout.classList.remove('with-panel');
           panelToggleBtn.setAttribute('aria-expanded', 'false');
           panelToggleBtn.title = 'Open map details';
+        } else {
+          panelOpen = true;
+          mapLayout.classList.add('with-panel');
+          panelToggleBtn.setAttribute('aria-expanded', 'true');
+          panelToggleBtn.title = 'Hide map details';
         }
       }
 
@@ -572,7 +514,7 @@
           mapImage.addEventListener('load', syncPanPosition, { once: true });
         }
         setEditMode(false);
-        setPanelOpen(false);
+        setPanelOpen(true);
         renderPins();
         updateDetailPanel();
         updateZoomButtons();
@@ -638,6 +580,7 @@
       panelToggleBtn.addEventListener('click', () => {
         if (editMode) {
           setEditMode(false);
+          return;
         }
         setPanelOpen(!panelOpen);
       });
