@@ -103,6 +103,12 @@
       .map-stage.dragging {
         cursor: grabbing;
       }
+      .map-viewport {
+        position: absolute;
+        inset: 0;
+        transform-origin: center center;
+        transition: transform 0.1s ease-out;
+      }
       .map-image {
         position: absolute;
         inset: 0;
@@ -335,7 +341,7 @@
           <div class="chapter-summary">
             <h2 id="map-title">The Known World</h2>
             <p id="map-summary">
-              Across the broken frontier of the Old Kingdom, rival realms, haunted woods, and forgotten shrines shape the fate of the campaign. Some roads are safe, most are not, and every trail leads toward a story still waiting to be remembered.
+              Across the broken frontier of the Old Kingdom, rival realms, haunted woods, and forgotten shrines shape the fate of the campaign. Some roads are safe, most are not, and every trail leads toward a greater omen.
             </p>
             <div class="meta-list">
               <span id="map-location">The First Light Campaign</span>
@@ -414,7 +420,7 @@
         title: 'The Known World',
         location: 'The First Light Campaign',
         session: 'World Overview',
-        summary: 'Across the broken frontier of the Old Kingdom, rival realms, haunted woods, and forgotten shrines shape the fate of the campaign. Some roads are safe, most are not, and every trail leads toward a story still waiting to be remembered.',
+        summary: 'Across the broken frontier of the Old Kingdom, rival realms, haunted woods, and forgotten shrines shape the fate of the campaign. Some roads are safe, most are not, and every trail leads toward a greater omen.',
         image: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1200&q=80',
         x: 50,
         y: 50
@@ -497,6 +503,11 @@
       const mapLayout = document.getElementById('mapLayout');
       const mapStage = document.getElementById('mapStage');
       const mapImage = document.querySelector('.map-image');
+      const mapViewport = document.createElement('div');
+      mapViewport.className = 'map-viewport';
+      mapStage.insertBefore(mapViewport, mapStage.firstChild);
+      mapViewport.appendChild(mapImage);
+
       const titleInput = document.getElementById('titleInput');
       const locationInput = document.getElementById('locationInput');
       const sessionInput = document.getElementById('sessionInput');
@@ -550,14 +561,14 @@
 
       function syncPanPosition() {
         const { maxX, maxY } = getPanLimits();
-        const currentX = Number(mapImage.dataset.offsetX || 0);
-        const currentY = Number(mapImage.dataset.offsetY || 0);
+        const currentX = Number(mapViewport.dataset.offsetX || 0);
+        const currentY = Number(mapViewport.dataset.offsetY || 0);
         const nextX = clamp(currentX, -maxX, maxX);
         const nextY = clamp(currentY, -maxY, maxY);
 
-        mapImage.dataset.offsetX = String(nextX);
-        mapImage.dataset.offsetY = String(nextY);
-        mapImage.style.transform = `translate(${nextX}px, ${nextY}px) scale(${zoom})`;
+        mapViewport.dataset.offsetX = String(nextX);
+        mapViewport.dataset.offsetY = String(nextY);
+        mapViewport.style.transform = `translate(${nextX}px, ${nextY}px) scale(${zoom})`;
       }
 
       function setPanelOpen(nextState) {
@@ -723,12 +734,12 @@
       }
 
       function renderPins() {
-        const existingPins = mapStage.querySelectorAll('.map-pin');
+        const existingPins = mapViewport.querySelectorAll('.map-pin');
         existingPins.forEach((pin) => pin.remove());
 
         points.forEach((point, index) => {
           const pin = makePin(point, index);
-          mapStage.appendChild(pin);
+          mapViewport.appendChild(pin);
         });
       }
 
@@ -803,16 +814,15 @@
           dragPan.x = event.clientX;
           dragPan.y = event.clientY;
 
-          const image = mapImage;
-          const current = Number(image.dataset.offsetX || 0);
-          const currentY = Number(image.dataset.offsetY || 0);
+          const current = Number(mapViewport.dataset.offsetX || 0);
+          const currentY = Number(mapViewport.dataset.offsetY || 0);
           const { maxX, maxY } = getPanLimits();
           const nextX = clamp(current + dx / zoom, -maxX, maxX);
           const nextY = clamp(currentY + dy / zoom, -maxY, maxY);
 
-          image.dataset.offsetX = String(nextX);
-          image.dataset.offsetY = String(nextY);
-          image.style.transform = `translate(${nextX}px, ${nextY}px) scale(${zoom})`;
+          mapViewport.dataset.offsetX = String(nextX);
+          mapViewport.dataset.offsetY = String(nextY);
+          mapViewport.style.transform = `translate(${nextX}px, ${nextY}px) scale(${zoom})`;
         }
       });
 
