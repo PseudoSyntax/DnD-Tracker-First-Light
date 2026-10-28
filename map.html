@@ -486,10 +486,10 @@
 
       function setPanelOpen(nextState) {
         panelOpen = nextState;
-        mapLayout.classList.toggle('with-panel', panelOpen);
-        panelToggleBtn.setAttribute('aria-expanded', String(panelOpen));
-        panelToggleBtn.textContent = panelOpen ? '✕' : '✎';
-        panelToggleBtn.title = panelOpen ? 'Hide map details' : 'Open map details';
+        const shouldShow = !editMode && panelOpen;
+        mapLayout.classList.toggle('with-panel', shouldShow);
+        panelToggleBtn.setAttribute('aria-expanded', String(shouldShow));
+        panelToggleBtn.title = shouldShow ? 'Hide map details' : 'Open map details';
       }
 
       function setEditMode(nextState) {
@@ -497,6 +497,13 @@
         editModeBtn.textContent = editMode ? 'On' : 'Off';
         editModeBtn.classList.toggle('is-on', editMode);
         editModeBtn.setAttribute('aria-pressed', String(editMode));
+
+        if (editMode) {
+          panelOpen = false;
+          mapLayout.classList.remove('with-panel');
+          panelToggleBtn.setAttribute('aria-expanded', 'false');
+          panelToggleBtn.title = 'Open map details';
+        }
       }
 
       function updateDetailPanel() {
@@ -564,8 +571,8 @@
         } else {
           mapImage.addEventListener('load', syncPanPosition, { once: true });
         }
-        setPanelOpen(false);
         setEditMode(false);
+        setPanelOpen(false);
         renderPins();
         updateDetailPanel();
         updateZoomButtons();
@@ -611,10 +618,6 @@
 
       document.addEventListener('pointerup', () => {
         if (dragIndex !== null) {
-          if (editMode) {
-            dragIndex = null;
-            return;
-          }
           dragIndex = null;
         }
 
@@ -633,6 +636,9 @@
       });
 
       panelToggleBtn.addEventListener('click', () => {
+        if (editMode) {
+          setEditMode(false);
+        }
         setPanelOpen(!panelOpen);
       });
 
