@@ -251,87 +251,44 @@
         color: var(--muted);
       }
 
-      .editor-panel {
-        margin-top: 18px;
-        padding-top: 18px;
+      .detail-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        margin: 18px 0;
+        padding-top: 8px;
         border-top: 1px solid var(--edge);
       }
 
-      .editor-header h3 {
-        margin: 0;
-        font-family: "Cormorant Garamond", Georgia, serif;
-        font-size: clamp(1.8rem, 2vw, 2.5rem);
-      }
-
-      .button-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-bottom: 14px;
-      }
-
-      button {
-        font: inherit;
-        border: 1px solid var(--edge);
-        background: rgba(255,255,255,0.03);
-        color: var(--ink);
-        padding: 9px 12px;
-        cursor: pointer;
-      }
-
-      button:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-
-      button.primary {
-        background: rgba(217,181,107,0.12);
-      }
-
-      button.alert {
-        border-color: rgba(207,124,111,0.7);
-      }
-
-      .point-form {
-        display: grid;
-        gap: 10px;
-      }
-
-      .point-form label {
-        display: grid;
-        gap: 6px;
+      .toggle-label {
         color: var(--muted);
-        font-size: 0.74rem;
-        letter-spacing: 0.04em;
+        font-size: 0.72rem;
+        letter-spacing: 0.12em;
         text-transform: uppercase;
       }
 
-      .point-form input,
-      .point-form textarea {
-        width: 100%;
-        background: rgba(255,255,255,0.02);
+      .edit-toggle {
         border: 1px solid var(--edge);
+        background: rgba(255,255,255,0.03);
         color: var(--ink);
-        padding: 10px 12px;
-        font: inherit;
+        padding: 8px 12px;
+        cursor: pointer;
       }
 
-      .point-form textarea {
-        min-height: 100px;
-        resize: vertical;
+      .edit-toggle.is-on {
+        background: rgba(217,181,107,0.12);
+        border-color: rgba(217,181,107,0.7);
       }
 
-      .coord-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
+      .location-description {
+        line-height: 1.8;
+        color: var(--muted);
+        margin: 0;
       }
 
-      .status-text {
-        margin-top: 10px;
-        color: var(--gold);
-        min-height: 18px;
-        font-size: 0.74rem;
+      .location-description strong {
+        color: var(--ink);
       }
 
       @media (max-width: 860px) {
@@ -354,9 +311,9 @@
         <h1 class="header-title">Campaign Atlas</h1>
       </header>
 
-      <main class="map-layout" id="mapLayout">
+      <main class="map-layout with-panel" id="mapLayout">
         <div class="map-stage-wrap">
-          <button id="panelToggleBtn" class="panel-toggle" type="button" aria-label="Toggle map details" aria-expanded="false">✎</button>
+          <button id="panelToggleBtn" class="panel-toggle" type="button" aria-label="Toggle map details" aria-expanded="true">✎</button>
           <div class="map-stage" id="mapStage" aria-label="Campaign map viewport">
             <div class="map-viewport" id="mapViewport">
               <img class="map-image" id="mapImage" src="image-1.png" alt="Interactive campaign map" />
@@ -379,72 +336,20 @@
             </div>
           </div>
 
-          <div class="editor-panel">
-            <div class="editor-header">
-              <h3>Map Editor</h3>
-            </div>
-
-            <div class="button-row">
-              <button id="addPointBtn" class="primary" type="button">Add Point</button>
-              <button id="connectTokenBtn" type="button">Add GitHub Token</button>
-              <button id="saveLocalBtn" type="button">Save Browser</button>
-            </div>
-
-            <div class="button-row">
-              <button id="publishBtn" type="button" disabled>Publish Disabled</button>
-            </div>
-
-            <form class="point-form" id="pointForm">
-              <label>
-                Title
-                <input id="titleInput" type="text" value="" placeholder="Select a location" />
-              </label>
-
-              <label>
-                Location
-                <input id="locationInput" type="text" value="" placeholder="Location" />
-              </label>
-
-              <label>
-                Session
-                <input id="sessionInput" type="text" value="" placeholder="Session" />
-              </label>
-
-              <label>
-                Image URL
-                <input id="imageInput" type="url" value="" placeholder="Image URL" />
-              </label>
-
-              <label>
-                Summary
-                <textarea id="summaryInput" placeholder="Choose a point to view its description."></textarea>
-              </label>
-
-              <div class="coord-grid">
-                <label>
-                  X %
-                  <input id="xInput" type="number" min="0" max="100" step="1" value="50" />
-                </label>
-                <label>
-                  Y %
-                  <input id="yInput" type="number" min="0" max="100" step="1" value="50" />
-                </label>
-              </div>
-
-              <div class="button-row">
-                <button id="deletePointBtn" class="alert" type="button">Delete Point</button>
-              </div>
-            </form>
-
-            <div id="statusText" class="status-text" aria-live="polite"></div>
+          <div class="detail-actions">
+            <span class="toggle-label">Edit mode</span>
+            <button id="editModeBtn" class="edit-toggle" type="button" aria-pressed="false">Off</button>
           </div>
+
+          <p class="location-description" id="locationDescription">
+            <strong>World overview:</strong> The campaign unfolds across a fractured frontier of ancient kingdoms, haunted wilds, and forgotten shrines.
+          </p>
         </aside>
       </main>
     </div>
 
     <script>
       const STORAGE_KEY = 'firstLightCampaignMapData';
-      const TOKEN_STORAGE_KEY = 'firstLightGithubToken';
       const MAP_EDGE_PADDING = 8;
 
       const WORLD_OVERVIEW = {
@@ -452,10 +357,10 @@
         location: 'The First Light Campaign',
         session: 'World Overview',
         summary: 'Across the broken frontier of the Old Kingdom, rival realms, haunted woods, and forgotten shrines shape the fate of the campaign. Some roads are safe, most are not, and every travel-worn path carries a story still waiting to be told.',
+        description: 'The campaign unfolds across a fractured frontier of ancient kingdoms, haunted wilds, and forgotten shrines. The world is full of broken oaths, old magic, and danger that waits just beyond the nearest road.',
         image: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1200&q=80',
         x: 50,
-        y: 50,
-        description: 'The campaign unfolds across a fractured frontier of ancient kingdoms, haunted wilds, and forgotten shrines. The world is full of broken oaths, old magic, and danger that waits just beyond the nearest road.'
+        y: 50
       };
 
       const DEFAULT_POINTS = [
@@ -473,27 +378,15 @@
       const mapStage = document.getElementById('mapStage');
       const mapViewport = document.getElementById('mapViewport');
       const mapImage = document.getElementById('mapImage');
-      const titleInput = document.getElementById('titleInput');
-      const locationInput = document.getElementById('locationInput');
-      const sessionInput = document.getElementById('sessionInput');
-      const summaryInput = document.getElementById('summaryInput');
-      const imageInput = document.getElementById('imageInput');
-      const xInput = document.getElementById('xInput');
-      const yInput = document.getElementById('yInput');
       const mapTitle = document.getElementById('map-title');
       const mapSummary = document.getElementById('map-summary');
       const mapLocation = document.getElementById('map-location');
       const mapSession = document.getElementById('map-session');
-      const statusText = document.getElementById('statusText');
-      const addPointBtn = document.getElementById('addPointBtn');
-      const connectTokenBtn = document.getElementById('connectTokenBtn');
-      const saveLocalBtn = document.getElementById('saveLocalBtn');
-      const publishBtn = document.getElementById('publishBtn');
-      const deletePointBtn = document.getElementById('deletePointBtn');
+      const locationDescription = document.getElementById('locationDescription');
+      const editModeBtn = document.getElementById('editModeBtn');
+      const panelToggleBtn = document.getElementById('panelToggleBtn');
       const zoomInBtn = document.getElementById('zoomInBtn');
       const zoomOutBtn = document.getElementById('zoomOutBtn');
-      const panelToggleBtn = document.getElementById('panelToggleBtn');
-      const locationDescription = document.getElementById('mapDetails');
 
       let selectedIndex = null;
       let dragIndex = null;
@@ -549,6 +442,40 @@
         updateZoomButtons();
       }
 
+      function setPanelVisible(nextState) {
+        mapLayout.classList.toggle('with-panel', nextState);
+        panelToggleBtn.setAttribute('aria-expanded', String(nextState));
+        panelToggleBtn.title = nextState ? 'Hide map details' : 'Show map details';
+      }
+
+      function setEditMode(nextState) {
+        editMode = Boolean(nextState);
+        editModeBtn.textContent = editMode ? 'On' : 'Off';
+        editModeBtn.classList.toggle('is-on', editMode);
+        editModeBtn.setAttribute('aria-pressed', String(editMode));
+        panelToggleBtn.textContent = editMode ? '✎' : '✎';
+        setPanelVisible(!editMode);
+      }
+
+      function updateDetailPanel() {
+        const point = selectedIndex !== null && points[selectedIndex] ? points[selectedIndex] : null;
+
+        if (!point) {
+          mapTitle.textContent = WORLD_OVERVIEW.title;
+          mapSummary.textContent = WORLD_OVERVIEW.summary;
+          mapLocation.textContent = WORLD_OVERVIEW.location;
+          mapSession.textContent = WORLD_OVERVIEW.session;
+          locationDescription.innerHTML = `<strong>World overview:</strong> ${WORLD_OVERVIEW.description}`;
+          return;
+        }
+
+        mapTitle.textContent = point.title;
+        mapSummary.textContent = point.summary;
+        mapLocation.textContent = point.location;
+        mapSession.textContent = point.session;
+        locationDescription.innerHTML = `<strong>${point.location}:</strong> ${point.description || point.summary}`;
+      }
+
       function loadPoints() {
         try {
           const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
@@ -563,46 +490,11 @@
         } catch (error) {
           console.warn('Unable to load saved map points.', error);
         }
-
         return DEFAULT_POINTS;
       }
 
       function persistPoints() {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(points));
-      }
-
-      function setEditMode(nextState) {
-        editMode = Boolean(nextState);
-        editModeBtn.textContent = editMode ? 'On' : 'Off';
-        editModeBtn.classList.toggle('is-on', editMode);
-        editModeBtn.setAttribute('aria-pressed', String(editMode));
-        mapLayout.classList.toggle('with-panel', !editMode);
-        panelToggleBtn.setAttribute('aria-expanded', String(!editMode));
-        panelToggleBtn.title = editMode ? 'Exit edit mode' : 'Enter edit mode';
-      }
-
-      function updateDetailPanel() {
-        const point = selectedIndex !== null && points[selectedIndex] ? points[selectedIndex] : null;
-
-        if (!point) {
-          mapTitle.textContent = WORLD_OVERVIEW.title;
-          mapSummary.textContent = WORLD_OVERVIEW.summary;
-          mapLocation.textContent = WORLD_OVERVIEW.location;
-          mapSession.textContent = WORLD_OVERVIEW.session;
-          document.getElementById('locationDescription')?.replaceChildren(
-            document.createTextNode('World overview: ' + WORLD_OVERVIEW.description)
-          );
-          return;
-        }
-
-        mapTitle.textContent = point.title;
-        mapSummary.textContent = point.summary;
-        mapLocation.textContent = point.location;
-        mapSession.textContent = point.session;
-        const locationText = document.getElementById('locationDescription');
-        if (locationText) {
-          locationText.innerHTML = `<strong>${point.location}:</strong> ${point.description || point.summary}`;
-        }
       }
 
       function renderPins() {
@@ -629,14 +521,14 @@
             if (event.button !== 0) return;
             event.preventDefault();
 
-            if (!editMode) {
+            if (editMode) {
+              dragIndex = index;
               selectedIndex = index;
               renderPins();
               updateDetailPanel();
               return;
             }
 
-            dragIndex = index;
             selectedIndex = index;
             renderPins();
             updateDetailPanel();
@@ -669,10 +561,14 @@
 
       mapStage.addEventListener('click', (event) => {
         if (event.target.closest('.map-pin')) return;
-        if (event.target !== mapStage && !event.target.closest('.map-image')) return;
-        selectedIndex = null;
-        renderPins();
-        updateDetailPanel();
+        if (event.target.closest('.panel-toggle')) return;
+        if (event.target.closest('#zoomInBtn')) return;
+        if (event.target.closest('#zoomOutBtn')) return;
+        if (event.target.closest('.map-image') || event.target === mapStage) {
+          selectedIndex = null;
+          renderPins();
+          updateDetailPanel();
+        }
       });
 
       mapStage.addEventListener('pointerdown', (event) => {
@@ -721,11 +617,13 @@
         }
       });
 
-      panelToggleBtn.addEventListener('click', () => {
+      panelToggleBtn.addEventListener('click', (event) => {
+        event.stopPropagation();
         setEditMode(!editMode);
       });
 
-      document.getElementById('editModeBtn')?.addEventListener('click', () => {
+      editModeBtn.addEventListener('click', (event) => {
+        event.stopPropagation();
         setEditMode(!editMode);
       });
 
