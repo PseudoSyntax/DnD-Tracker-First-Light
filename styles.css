@@ -18,6 +18,7 @@
 
 html {
   scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -42,6 +43,12 @@ a {
 
 button {
   font: inherit;
+}
+
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid var(--gold-soft);
+  outline-offset: 3px;
 }
 
 .campaign-shell {
@@ -118,6 +125,7 @@ button {
 .story-column {
   display: grid;
   gap: 18px;
+  min-width: 0;
 }
 
 .chapter-hero {
@@ -140,6 +148,7 @@ button {
   position: relative;
   z-index: 1;
   height: 100%;
+  min-height: inherit;
   display: flex;
   flex-direction: column;
   justify-content: end;
@@ -166,7 +175,7 @@ button {
 #hero-summary {
   margin: 0;
   max-width: 52ch;
-  color: rgba(246, 240, 225, 0.82);
+  color: rgba(246, 240, 225, 0.88);
   line-height: 1.7;
   font-size: 1.02rem;
 }
@@ -181,8 +190,8 @@ button {
 .hero-meta span {
   display: inline-flex;
   align-items: center;
-  background: rgba(6, 9, 11, 0.44);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(6, 9, 11, 0.62);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   padding: 8px 12px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -214,6 +223,7 @@ button {
 
 .map-link img {
   width: 100%;
+  height: auto;
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 14px 28px rgba(0, 0, 0, 0.2);
   background: #0d1115;
@@ -226,6 +236,7 @@ button {
 }
 
 .chapter-panel {
+  min-width: 0;
   background: rgba(14, 19, 22, 0.75);
   border: 1px solid var(--edge);
   padding: 18px 18px 14px;
@@ -345,7 +356,7 @@ button {
 
 @media (max-width: 900px) {
   .chapter-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .hero-content {
@@ -355,25 +366,147 @@ button {
 
 @media (max-width: 560px) {
   .campaign-shell {
-    width: min(100% - 12px, 1200px);
-    margin: 18px auto;
+    width: 100%;
+    margin: 0 auto;
+    border-left: 0;
+    border-right: 0;
   }
 
   .topbar {
-    padding: 18px 18px 14px;
+    padding: max(16px, env(safe-area-inset-top)) 16px 14px;
     align-items: flex-start;
-    flex-direction: column;
+    flex-direction: row;
+    gap: 12px;
+  }
+
+  .brand-wrap h1 {
+    font-size: clamp(2.6rem, 12vw, 3.5rem);
+  }
+
+  .campaign-meta {
+    justify-content: flex-end;
+    gap: 6px;
+    padding-top: 5px;
+  }
+
+  .campaign-meta span {
+    padding: 7px 8px;
+    font-size: 0.62rem;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
   }
 
   .chapter-layout {
+    gap: 14px;
     padding: 12px;
   }
 
+  .chapter-panel {
+    order: -1;
+    padding: 14px 12px 12px;
+  }
+
+  .panel-heading {
+    margin-bottom: 12px;
+  }
+
+  .chapter-list {
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 78%);
+    grid-template-columns: none;
+    gap: 10px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: thin;
+    scrollbar-color: var(--gold) rgba(255, 255, 255, 0.08);
+    padding: 0 0 8px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .chapter-tile,
+  .chapter-tile:hover,
+  .chapter-tile.active {
+    height: 142px;
+    min-height: 142px;
+    scroll-snap-align: start;
+  }
+
+  .chapter-tile {
+    touch-action: manipulation;
+  }
+
+  .chapter-tile .tile-content {
+    padding: 14px 12px 11px;
+  }
+
   .chapter-hero {
-    min-height: 440px;
+    min-height: 0;
+    height: clamp(390px, 68svh, 620px);
+    background-position: center;
+  }
+
+  .hero-overlay {
+    background: linear-gradient(180deg, rgba(8, 10, 11, 0.12) 5%, rgba(8, 10, 11, 0.4) 38%, rgba(8, 10, 11, 0.88) 100%);
   }
 
   .hero-content {
-    padding: 24px 22px 20px;
+    min-height: 100%;
+    padding: 24px 18px max(20px, env(safe-area-inset-bottom));
+  }
+
+  .chapter-hero h2 {
+    font-size: clamp(2.8rem, 13vw, 4.2rem);
+    line-height: 0.92;
+    margin-bottom: 12px;
+  }
+
+  #hero-summary {
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+
+  .hero-meta {
+    gap: 8px;
+    margin-top: 16px;
+  }
+
+  .hero-meta span {
+    padding: 8px 9px;
+    font-size: 0.64rem;
+  }
+
+  .map-panel {
+    padding: 14px 12px 10px;
+  }
+
+  .map-link img {
+    border-radius: 2px;
+  }
+}
+
+@media (max-width: 360px) {
+  .topbar {
+    flex-direction: column;
+  }
+
+  .campaign-meta {
+    justify-content: flex-start;
+    padding-top: 0;
+  }
+
+  .chapter-list {
+    grid-auto-columns: 86%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
   }
 }
