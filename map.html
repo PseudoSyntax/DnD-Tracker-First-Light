@@ -61,9 +61,13 @@
               <p class="location-description">Drag a marker, or select one and use the arrow keys (hold Shift for larger steps). Edits stay in this browser until you export them and commit <code>campaign-data.json</code>.</p>
               <div class="editor-tools">
                 <button class="btn primary" id="exportBtn" type="button">Export JSON</button>
+                <button class="btn" id="publishBtn" type="button">Save for review</button>
                 <button class="btn" id="importBtn" type="button">Import JSON</button>
                 <button class="btn" id="resetBtn" type="button">Discard local edits</button>
               </div>
+              <label class="token-field">GitHub token (needed to open a pull request)
+                <input id="tokenInput" type="password" autocomplete="off" spellcheck="false" placeholder="Fine-grained token, contents + pull requests write" />
+              </label>
               <input id="importFile" type="file" accept="application/json,.json" hidden />
             </div>
             <p class="status-line" id="statusLine" role="status"></p>

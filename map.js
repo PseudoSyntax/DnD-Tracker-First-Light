@@ -53,6 +53,15 @@
   const round1 = (value) => Math.round(value * 10) / 10;
   const round2 = (value) => Math.round(value * 100) / 100;
 
+  function setStatusLink(message, url) {
+    const link = document.createElement("a");
+    link.href = url;
+    link.target = "_blank";
+    link.rel = "noopener";
+    link.textContent = "View pull request";
+    statusLine.replaceChildren(document.createTextNode(`${message} `), link);
+  }
+
   function setStatus(message) {
     statusLine.textContent = message || (FirstLight.hasEdits() ? "Local edits active in this browser." : "");
   }
@@ -469,6 +478,77 @@
     link.click();
     URL.revokeObjectURL(link.href);
     setStatus("Exported. Replace campaign-data.json in the repo and commit it.");
+  });
+
+  /* ---------- Save for review ---------- */
+
+  const REPO = "PseudoSyntax/DnD-Tracker-First-Light";
+  const BASE_BRANCH = "main";
+  const DATA_PATH = "campaign-data.json";
+
+  async function github(token, path, options = {}) {
+    const response = await fetch(`https://api.github.com/repos/${REPO}${path}`, {
+      ...options,
+      headers: {
+        Accept: "application/vnd.github+json",
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.message || `GitHub returned ${response.status}`);
+    return body;
+  }
+
+  const toBase64 = (text) => {
+    const bytes = new TextEncoder().encode(text);
+    let binary = "";
+    bytes.forEach((byte) => (binary += String.fromCharCode(byte)));
+    return btoa(binary);
+  };
+
+  async function publishWithToken(token, content) {
+    const base = await github(token, `/git/ref/heads/${BASE_BRANCH}`);
+    const branch = `map-edit-${new Date().toISOString().replace(/[^0-9]/g, "").slice(0, 14)}`;
+    await github(token, "/git/refs", { method: "POST", body: JSON.stringify({ ref: `refs/heads/${branch}`, sha: base.object.sha }) });
+    const file = await github(token, `/contents/${DATA_PATH}?ref=${BASE_BRANCH}`);
+    await github(token, `/contents/${DATA_PATH}`, {
+      method: "PUT",
+      body: JSON.stringify({ message: "Update campaign data from map editor", content: toBase64(content), sha: file.sha, branch })
+    });
+    const pr = await github(token, "/pulls", {
+      method: "POST",
+      body: JSON.stringify({ title: "Update campaign data from map editor", head: branch, base: BASE_BRANCH, body: "Edits made in the interactive map editor." })
+    });
+    return pr.html_url;
+  }
+
+  $("publishBtn").addEventListener("click", async () => {
+    const content = `${JSON.stringify(campaign, null, 2)}\n`;
+    const tokenInput = $("tokenInput");
+    const token = tokenInput.value.trim();
+    const button = $("publishBtn");
+    if (!token) {
+      try {
+        await navigator.clipboard.writeText(content);
+        setStatus("JSON copied. Paste it into the GitHub editor that just opened, then commit.");
+      } catch (error) {
+        setStatus("Could not copy automatically; use Export JSON instead.");
+      }
+      window.open(`https://github.com/${REPO}/edit/${BASE_BRANCH}/${DATA_PATH}`, "_blank", "noopener");
+      return;
+    }
+    button.disabled = true;
+    setStatus("Saving…");
+    try {
+      const url = await publishWithToken(token, content);
+      tokenInput.value = "";
+      setStatusLink("Saved. A pull request is waiting for approval.", url);
+    } catch (error) {
+      setStatus(`Save failed: ${error.message}`);
+    } finally {
+      button.disabled = false;
+    }
   });
 
   $("importBtn").addEventListener("click", () => importFile.click());
