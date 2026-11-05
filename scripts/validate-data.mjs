@@ -27,11 +27,6 @@ if (!Array.isArray(data.chapters) || !data.chapters.length) {
     if (ids.has(chapter.id)) fail(`${name}.id "${chapter.id}" is duplicated`);
     ids.add(chapter.id);
     if (chapter.id && !/^[a-z0-9-]+$/.test(chapter.id)) fail(`${name}.id must be lowercase letters, digits and hyphens`);
-    for (const axis of ["x", "y"]) {
-      if (typeof chapter[axis] !== "number" || chapter[axis] < 0 || chapter[axis] > 100) {
-        fail(`${name}.${axis} must be a number between 0 and 100`);
-      }
-    }
     if (chapter.image && !/^https:\/\//.test(chapter.image) && !/^[\w./-]+$/.test(chapter.image)) {
       fail(`${name}.image must be an https URL or a relative path`);
     }
@@ -47,6 +42,19 @@ if (!Array.isArray(data.chapters) || !data.chapters.length) {
         if (typeof npc.name !== "string" || !npc.name.trim()) fail(`${name}.npcs[${i}].name is required`);
       });
     }
+  });
+  const pointIds = new Set();
+  if (!Array.isArray(data.points)) fail('"points" must be an array');
+  else data.points.forEach((point, index) => {
+    const name = `points[${index}]`;
+    if (typeof point.id !== "string" || !/^[a-z0-9-]+$/.test(point.id)) fail(`${name}.id must be lowercase letters, digits and hyphens`);
+    if (pointIds.has(point.id)) fail(`${name}.id "${point.id}" is duplicated`);
+    pointIds.add(point.id);
+    if (typeof point.title !== "string" || !point.title.trim()) fail(`${name}.title must be a non-empty string`);
+    for (const axis of ["x", "y"]) {
+      if (typeof point[axis] !== "number" || point[axis] < 0 || point[axis] > 100) fail(`${name}.${axis} must be a number between 0 and 100`);
+    }
+    if (point.chapter && !ids.has(point.chapter)) fail(`${name}.chapter "${point.chapter}" does not match any chapter id`);
   });
   if (data.currentChapter && !ids.has(data.currentChapter)) fail(`"currentChapter" does not match any chapter id`);
 }

@@ -51,10 +51,10 @@ a:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
 .im-actions .im-btn[aria-pressed="true"] { background:var(--im-fg); color:#fff; }
 .btn.primary { background:#00703c; color:#fff; box-shadow:inset 0 -2px 0 #002d18; }
 .btn.primary:hover { background:#005a30; }
-.im-btn:focus-visible, .btn:focus-visible, .im-close:focus-visible, .im-app input:focus-visible, .im-app textarea:focus-visible {
+.im-btn:focus-visible, .btn:focus-visible, .im-close:focus-visible, .im-app input:focus-visible, .im-app textarea:focus-visible, .im-app select:focus-visible {
   outline:3px solid var(--im-focus); outline-offset:0; box-shadow:inset 0 0 0 4px var(--im-fg); background:var(--im-focus); color:var(--im-fg);
 }
-.im-app input:focus-visible, .im-app textarea:focus-visible { background:var(--im-bg); }
+.im-app input:focus-visible, .im-app textarea:focus-visible, .im-app select:focus-visible { background:var(--im-bg); }
 .im-controls { position:absolute; z-index:5; top:var(--im-margin); right:var(--im-margin); display:flex; flex-direction:column; align-items:flex-end; gap:var(--im-gap); }
 .im-group { display:flex; flex-direction:column; gap:0; }
 .im-group .im-btn + .im-btn { border-top:1px solid var(--im-border); }
@@ -77,6 +77,10 @@ a:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
 .nav-row .btn { flex:1 1 auto; border:1px solid var(--im-fg); box-shadow:none; }
 .editor { display:grid; gap:10px; margin:0; }
 .editor label { display:grid; gap:4px; color:var(--im-secondary); font-size:.68rem; letter-spacing:.08em; text-transform:uppercase; }
+.editor select { width:100%; padding:8px 10px; border:2px solid var(--im-fg); border-radius:0; background:var(--im-bg); color:var(--im-fg); text-transform:none; letter-spacing:0; }
+.btn.danger { border:1px solid #d4351c; color:#d4351c; box-shadow:none; }
+.btn.danger:hover { background:#d4351c; color:#fff; }
+.map-pin.unlinked .dot { background:#fff; color:var(--im-fg); border-color:var(--im-fg); }
 .editor input, .editor textarea { width:100%; padding:8px 10px; border:2px solid var(--im-fg); border-radius:0; background:var(--im-bg); color:var(--im-fg); text-transform:none; letter-spacing:0; }
 .editor .coords { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
 .editor-tools { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }

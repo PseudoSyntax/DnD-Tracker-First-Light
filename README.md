@@ -17,7 +17,8 @@ python3 -m http.server 8000   # then open http://localhost:8000
 - `currentChapter` – id of the chapter the party is on (earlier chapters show as completed).
 - `world` – overview text shown on the map when nothing is selected.
 - `party` – optional list of `{ "name", "role", "note" }`; the Party panel appears when it has entries.
-- `chapters[]` – `id`, `number`, `title`, `location`, `session`, `summary`, `snippet`, `description`, `image`, map position `x`/`y` (percent of the map image), `quests` (`{ "text", "done" }`) and `npcs` (`{ "name", "note" }`).
+- `chapters[]` – `id`, `number`, `title`, `location`, `session`, `summary`, `snippet`, `image`, `quests` (`{ "text", "done" }`) and `npcs` (`{ "name", "note" }`).
+- `points[]` – map markers: `id`, `title`, `location`, `summary`, `description`, `x`/`y` (percent of the map image) and optional `chapter` (id of the chapter it is linked to). Linked points are numbered and joined by the route line in chapter order.
 
 Validate changes with `node scripts/validate-data.mjs`. The *Validate campaign data* workflow runs the same check on pushes and pull requests.
 
@@ -26,7 +27,7 @@ Validate changes with `node scripts/validate-data.mjs`. The *Validate campaign d
 The map UI follows the layout of the [DEFRA interactive-map basic example](https://defra.github.io/interactive-map/examples/basic-map): a full-width map with square white controls on the right, a docked details panel, a bottom-left options bar and an attribution strip.
 
 - Drag to pan; scroll, pinch, or use the **+ / −** buttons to zoom (zoom follows the cursor). The home button resets the view and the corners button toggles full screen.
-- The view is kept in the URL as `?map:center=x,y&map:zoom=z` (centre in percent of the image, zoom as a power of two), so any view can be shared. `#chapter-id` selects a marker.
+- The view is kept in the URL as `?map:center=x,y&map:zoom=z` (centre in percent of the image, zoom as a power of two), so any view can be shared. `#point-id` selects a marker. In Edit mode use **+ Add point** (or double-click the map) to add a marker, and **Delete point** to remove one; choose a **Linked chapter** in the form to link it.
 - With the map focused: arrow keys pan, `+`/`-` zoom, `0` resets, `?` opens keyboard help, `Esc` deselects.
 - Markers are numbered by chapter (blue = current, green = completed) and joined by a toggleable route line and labels.
 - Select a marker (or use Prev/Next) to read its details; links open the matching journal chapter.
