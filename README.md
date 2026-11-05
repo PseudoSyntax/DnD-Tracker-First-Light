@@ -35,8 +35,11 @@ The map UI follows the layout of the [DEFRA interactive-map basic example](https
 
 1. Switch **Edit** on (bottom-left).
 2. Drag markers (or select one and use the arrow keys, `Shift` for bigger steps) and edit its text fields.
-3. Edits are saved only in your browser's local storage. **Export JSON** downloads a full `campaign-data.json`.
-4. Replace `campaign-data.json` in the repo and commit it (via pull request if `main` is protected). **Import JSON** loads a file back as local edits; **Discard local edits** reverts to the published data.
+3. Edits are saved in your browser's local storage until you publish them.
+4. **Save for review** makes them permanent:
+   - With a [fine-grained token](https://github.com/settings/personal-access-tokens/new) limited to this repository (Contents and Pull requests: read and write), pasted into the token field, it opens a pull request updating `campaign-data.json`. The token is kept only in the field, never stored, and is cleared after publishing. Merge the PR to go live.
+   - Without a token it copies the JSON and opens GitHub's editor for `campaign-data.json`; paste and commit.
+5. **Export JSON** downloads the file instead; **Import JSON** loads a file back as local edits; **Discard local edits** reverts to the published data.
 
 ## Journal extras
 
