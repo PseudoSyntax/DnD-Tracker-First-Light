@@ -1,144 +1,202 @@
-const chapters = [
-  {
-    number: 1,
-    title: "The Whispering Forest",
-    location: "Forest of Hollow Pine",
-    session: "Session 01",
-    summary:
-      "The party enters the Blackbriar frontier, where a forgotten lantern is said to have warmed the land before the first winter of ruin. Old roots sway like whispers, and every trail seems to remember the names of those who are already lost.",
-    snippet: "A forest of ash and moonlight where a lantern-first omen sets the campaign in motion.",
-    image:
-      "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1200&q=80"
-  },
-  {
-    number: 2,
-    title: "Ashes of the Moor",
-    location: "The Emberfen",
-    session: "Session 02",
-    summary:
-      "A ruined keep rises from a field of smoldering heather, where the cult’s first ash-mark is found beneath a collapsed bell tower. The air tastes of smoke and prophecy.",
-    snippet: "A burned moor of ruined keeps, bell towers, and ash-marked cult sigils.",
-    image:
-      "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80"
-  },
-  {
-    number: 3,
-    title: "The Shattered Tide",
-    location: "Nightmere Coast",
-    session: "Session 03",
-    summary:
-      "A drowned chapel and black tide pull the party toward an enemy they cannot name. Strange sea sigils pulse beneath the moon, and the dead follow the sound of bells across the sand.",
-    snippet: "A moonlit coast haunted by drowned shrines and a dark sea ritual.",
-    image:
-      "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1200&q=80"
-  },
-  {
-    number: 4,
-    title: "The Iron Ridge",
-    location: "Stormglass Peaks",
-    session: "Session 04",
-    summary:
-      "The mountains answer with thunder and glacier-cold silence. Within the ruined fortress, a crown of stormsteel is hidden beyond a door that only opens to a vow.",
-    snippet: "A thunder-ridden mountain pass guarding a broken crown of stormsteel.",
-    image:
-      "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80"
-  },
-  {
-    number: 5,
-    title: "The Glass Marsh",
-    location: "Mire of Sable Reed",
-    session: "Session 05",
-    summary:
-      "The marsh gleams like broken glass beneath the twilight. The party follows a trail of lantern-light through reeds that whisper in a hundred old dialects, each one naming a forbidden oath.",
-    snippet: "A mirrored swamp where lanterns flicker through reeds and old oaths.",
-    image:
-      "https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&w=1200&q=80"
-  },
-  {
-    number: 6,
-    title: "The Vault of Echoes",
-    location: "Lair of Silent Bells",
-    session: "Session 06",
-    summary:
-      "Beneath the ruins of a collapsed citadel, the party uncovers a chamber of listening stone where every memory is stored in a different bell tone. The cult’s plan becomes more dreadful and more intimate.",
-    snippet: "A hidden vault of resonant stone and memory-born danger.",
-    image:
-      "https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=1200&q=80"
-  },
-  {
-    number: 7,
-    title: "The Hollow Crown",
-    location: "Fane of Last Winter",
-    session: "Session 07",
-    summary:
-      "A dead throne room opens beneath a frozen shrine, revealing the final living remnant of a kingdom that chose ritual over mercy. The party gains the choice to either break or wear the crown’s burden.",
-    snippet: "A frozen shrine and a throne room where old kings do not rest quietly.",
-    image:
-      "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=900&q=80"
-  },
-  {
-    number: 8,
-    title: "First Dawn",
-    location: "Skyreach Observatory",
-    session: "Session 08",
-    summary:
-      "At the peak of the world, the signal of the first dawn waits under a temple of stars. The final cost of the ritual is no longer hidden; it is carried in the hands of the heroes who chose to stand against it.",
-    snippet: "The campaign ends beneath a rising sky and the first true dawn.",
-    image:
-      "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1200&q=80"
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const els = {
+    hero: $("chapter-hero"),
+    list: $("chapter-list"),
+    title: $("hero-title"),
+    summary: $("hero-summary"),
+    location: $("hero-location"),
+    session: $("hero-session"),
+    status: $("hero-status"),
+    count: $("chapter-count"),
+    prev: $("prev-chapter"),
+    next: $("next-chapter"),
+    mapLink: $("hero-map-link"),
+    error: $("load-error"),
+    journal: $("journal-panel"),
+    quests: $("quest-list"),
+    npcs: $("npc-list"),
+    notes: $("chapter-notes"),
+    partyPanel: $("party-panel"),
+    party: $("party-list")
+  };
+
+  let campaign = null;
+  let activeIndex = 0;
+
+  function el(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
   }
-];
 
-const chapterHero = document.getElementById("chapter-hero");
-const chapterList = document.getElementById("chapter-list");
-const heroTitle = document.getElementById("hero-title");
-const heroSummary = document.getElementById("hero-summary");
-const heroLocation = document.getElementById("hero-location");
-const heroSession = document.getElementById("hero-session");
+  function chapterStatus(index) {
+    const current = campaign.chapters.findIndex((chapter) => chapter.id === campaign.currentChapter);
+    if (current === -1) return "";
+    if (index < current) return "Completed";
+    if (index === current) return "Current";
+    return "Upcoming";
+  }
 
-let activeChapter = 0;
+  function indexFromHash() {
+    const id = decodeURIComponent(location.hash.slice(1));
+    const index = campaign.chapters.findIndex((chapter) => chapter.id === id);
+    if (index !== -1) return index;
+    const current = campaign.chapters.findIndex((chapter) => chapter.id === campaign.currentChapter);
+    return current === -1 ? 0 : current;
+  }
 
-function renderChapters() {
-  chapterList.innerHTML = chapters
-    .map((chapter, index) => {
-      const selected = index === activeChapter;
-      return `
-        <button
-          class="chapter-tile ${selected ? "active" : ""}"
-          data-index="${index}"
-          type="button"
-          aria-label="${chapter.title}"
-        >
-          <img src="${chapter.image}" alt="${chapter.title}" />
-          <div class="tile-overlay"></div>
-          <div class="tile-content">
-            <span class="tile-number">Chapter ${chapter.number}</span>
-            <span class="tile-name">${chapter.title}</span>
-            <span class="tile-status">${chapter.session}</span>
-            <span class="tile-snippet">${chapter.snippet}</span>
-          </div>
-        </button>
-      `;
-    })
-    .join("");
+  function selectChapter(index, { updateHash = true, focusTile = false } = {}) {
+    activeIndex = Math.min(Math.max(index, 0), campaign.chapters.length - 1);
+    if (updateHash) history.replaceState(null, "", `#${campaign.chapters[activeIndex].id}`);
+    renderHero();
+    renderList();
+    renderJournal();
+    if (focusTile) els.list.querySelector(".chapter-tile.active")?.focus();
+  }
 
-  chapterList.querySelectorAll(".chapter-tile").forEach((button) => {
-    button.addEventListener("click", () => {
-      activeChapter = Number(button.dataset.index);
-      renderHero();
-      renderChapters();
+  function renderList() {
+    els.list.replaceChildren(
+      ...campaign.chapters.map((chapter, index) => {
+        const selected = index === activeIndex;
+        const button = el("button", `chapter-tile${selected ? " active" : ""}`);
+        button.type = "button";
+        button.setAttribute("aria-pressed", String(selected));
+        button.setAttribute("aria-label", `Chapter ${chapter.number}: ${chapter.title}`);
+        button.addEventListener("click", () => selectChapter(index));
+
+        const img = el("img");
+        img.src = chapter.image;
+        img.alt = "";
+        img.loading = "lazy";
+        img.decoding = "async";
+        img.addEventListener("error", () => img.remove());
+
+        const content = el("div", "tile-content");
+        const status = chapterStatus(index);
+        content.append(
+          el("span", "tile-number", `Chapter ${chapter.number}`),
+          el("span", "tile-name", chapter.title),
+          el("span", "tile-status", status ? `${chapter.session} · ${status}` : chapter.session),
+          el("span", "tile-snippet", chapter.snippet)
+        );
+        button.append(img, el("div", "tile-overlay"), content);
+        return button;
+      })
+    );
+  }
+
+  function renderHero() {
+    const chapter = campaign.chapters[activeIndex];
+    const image = chapter.image ? `, url("${encodeURI(chapter.image)}")` : "";
+    els.hero.style.backgroundImage = `linear-gradient(90deg, rgba(9, 12, 14, 0.78), rgba(9, 12, 14, 0.28))${image}`;
+    els.title.textContent = chapter.title;
+    document.querySelector(".chapter-kicker").textContent =
+      chapterStatus(activeIndex) === "Current" ? "Current Chapter" : `Chapter ${chapter.number}`;
+    els.summary.textContent = chapter.summary;
+    els.location.textContent = chapter.location;
+    els.session.textContent = chapter.session;
+    const status = chapterStatus(activeIndex);
+    els.status.textContent = status;
+    els.status.hidden = !status;
+    els.prev.disabled = activeIndex === 0;
+    els.next.disabled = activeIndex === campaign.chapters.length - 1;
+    els.mapLink.href = `map.html#${chapter.id}`;
+    document.title = `${chapter.title} | First Light`;
+  }
+
+  function renderJournal() {
+    const chapter = campaign.chapters[activeIndex];
+    els.journal.hidden = false;
+
+    els.quests.replaceChildren(
+      ...(chapter.quests.length
+        ? chapter.quests.map((quest, index) => {
+            const item = el("li");
+            const label = el("label", "quest-item");
+            const box = el("input");
+            box.type = "checkbox";
+            box.checked = FirstLight.isQuestDone(chapter, index);
+            box.addEventListener("change", () => {
+              FirstLight.setQuestDone(chapter, index, box.checked);
+              label.classList.toggle("done", box.checked);
+            });
+            label.classList.toggle("done", box.checked);
+            label.append(box, el("span", "", quest.text));
+            item.append(label);
+            return item;
+          })
+        : [el("li", "empty", "No objectives recorded yet.")])
+    );
+
+    els.npcs.replaceChildren(
+      ...(chapter.npcs.length
+        ? chapter.npcs.map((npc) => {
+            const item = el("li");
+            item.append(el("strong", "", npc.name));
+            if (npc.note) item.append(document.createTextNode(` — ${npc.note}`));
+            return item;
+          })
+        : [el("li", "empty", "No one of note yet.")])
+    );
+
+    els.notes.value = FirstLight.getNotes(chapter.id);
+  }
+
+  function renderParty() {
+    const party = campaign.party || [];
+    els.partyPanel.hidden = !party.length;
+    els.party.replaceChildren(
+      ...party.map((member) => {
+        const item = el("li");
+        item.append(el("strong", "", member.name));
+        const detail = [member.role, member.note].filter(Boolean).join(" — ");
+        if (detail) item.append(document.createTextNode(` — ${detail}`));
+        return item;
+      })
+    );
+  }
+
+  function normalize(data) {
+    data.chapters.forEach((chapter, index) => {
+      chapter.number = chapter.number || index + 1;
+      chapter.quests = Array.isArray(chapter.quests) ? chapter.quests : [];
+      chapter.npcs = Array.isArray(chapter.npcs) ? chapter.npcs : [];
+      chapter.snippet = chapter.snippet || "";
     });
-  });
-}
+    return data;
+  }
 
-function renderHero() {
-  const chapter = chapters[activeChapter];
-  chapterHero.style.backgroundImage = `linear-gradient(90deg, rgba(9, 12, 14, 0.78), rgba(9, 12, 14, 0.28)), url("${chapter.image}")`;
-  heroTitle.textContent = chapter.title;
-  heroSummary.textContent = chapter.summary;
-  heroLocation.textContent = chapter.location;
-  heroSession.textContent = chapter.session;
-}
+  async function init() {
+    try {
+      campaign = normalize(await FirstLight.fetchPublished());
+    } catch (error) {
+      console.error(error);
+      els.title.textContent = "Journal unavailable";
+      els.error.hidden = false;
+      els.error.textContent =
+        "Could not load campaign-data.json. If you opened this file directly, serve the folder with a local web server (for example: python3 -m http.server).";
+      return;
+    }
 
-renderHero();
-renderChapters();
+    els.count.textContent = `${campaign.chapters.length} Chapters`;
+    els.prev.addEventListener("click", () => selectChapter(activeIndex - 1));
+    els.next.addEventListener("click", () => selectChapter(activeIndex + 1));
+    els.notes.addEventListener("input", () => {
+      FirstLight.setNotes(campaign.chapters[activeIndex].id, els.notes.value.trim() ? els.notes.value : "");
+    });
+    window.addEventListener("hashchange", () => selectChapter(indexFromHash(), { updateHash: false }));
+    els.list.addEventListener("keydown", (event) => {
+      const step = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[event.key];
+      if (!step) return;
+      event.preventDefault();
+      selectChapter(activeIndex + step, { focusTile: true });
+    });
+
+    renderParty();
+    selectChapter(indexFromHash(), { updateHash: Boolean(location.hash) });
+  }
+
+  init();
+})();

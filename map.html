@@ -8,72 +8,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <style>
-      * { box-sizing: border-box; }
-      :root { --ink: #f4ead7; --muted: #d5cdb8; --gold: #d9b56b; --edge: rgba(255,255,255,.1); }
-      html { min-height: 100%; background: #0b1114; -webkit-text-size-adjust: 100%; }
-      body { margin: 0; min-height: 100vh; color: var(--ink); font-family: Inter, sans-serif; background: radial-gradient(circle at top, rgba(94,119,106,.16), transparent 32%), linear-gradient(135deg,#06090b,#0f1719 45%,#111b20); }
-      button, a { font: inherit; }
-      button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
-      .map-page { min-height: 100vh; background: rgba(10,15,16,.8); }
-      .topbar { display:flex; justify-content:space-between; align-items:center; gap:16px; padding:14px clamp(14px,3vw,28px); border-bottom:1px solid var(--edge); }
-      .back-link { color:var(--muted); text-decoration:none; letter-spacing:.1em; text-transform:uppercase; font-size:.75rem; font-weight:700; }
-      .header-title { margin:0; font:700 clamp(1.9rem,4vw,3.4rem)/1 "Cormorant Garamond",Georgia,serif; text-align:right; }
-      .map-layout { display:grid; grid-template-columns:minmax(0,1fr); gap:16px; padding:clamp(10px,2vw,20px); max-width:1600px; margin:auto; }
-      .map-layout.with-panel { grid-template-columns:minmax(0,2.2fr) minmax(260px,.8fr); }
-      .map-stage-wrap { position:relative; min-width:0; aspect-ratio:16/10; min-height:360px; max-height:76vh; border:1px solid var(--edge); background:#0d1113; overflow:hidden; }
-      .map-stage { position:relative; width:100%; height:100%; min-height:inherit; overflow:hidden; cursor:grab; user-select:none; -webkit-user-select:none; touch-action:none; }
-      .map-stage.dragging { cursor:grabbing; }
-      .map-viewport { position:absolute; inset:0; transform-origin:center; transition:transform .12s ease-out; }
-      .map-image { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; background:#0d1113; filter:saturate(.85) contrast(1.08); pointer-events:none; }
-      .map-pin { position:absolute; z-index:2; width:30px; height:30px; padding:0; border:0; border-radius:50%; background:transparent; transform:translate(-50%,-50%); cursor:pointer; touch-action:none; }
-      .map-pin::before { content:""; position:absolute; inset:6px; border:2px solid rgba(255,255,255,.9); border-radius:50%; background:radial-gradient(circle,#f7e7b4,#d7b157 50%,#8d671e); box-shadow:0 0 0 5px rgba(215,177,87,.23),0 0 16px rgba(215,177,87,.55); }
-      .map-pin:hover::before, .map-pin.selected::before { box-shadow:0 0 0 7px rgba(215,177,87,.32),0 0 20px rgba(215,177,87,.7); }
-      .map-pin.selected { outline:2px solid rgba(255,255,255,.9); outline-offset:2px; }
-      .panel-toggle, .zoom-controls button { display:flex; align-items:center; justify-content:center; width:46px; height:46px; border:1px solid var(--edge); border-radius:3px; background:rgba(10,15,16,.9); color:var(--ink); cursor:pointer; }
-      .panel-toggle { position:absolute; z-index:5; top:12px; right:12px; font-size:1.15rem; }
-      .zoom-controls { position:absolute; z-index:4; right:12px; bottom:12px; display:flex; flex-direction:column; gap:8px; }
-      .zoom-controls button { font-size:1.5rem; line-height:1; }
-      .zoom-controls button:disabled { opacity:.45; }
-      .map-details { display:none; min-width:0; padding:18px; border:1px solid var(--edge); background:rgba(255,255,255,.025); }
-      .with-panel .map-details { display:block; }
-      .panel-kicker { margin:0 0 8px; color:var(--gold); text-transform:uppercase; letter-spacing:.15em; font-size:.7rem; font-weight:700; }
-      .chapter-summary h2 { margin:0 0 12px; font:700 clamp(2rem,3vw,3rem)/.95 "Cormorant Garamond",Georgia,serif; }
-      .chapter-summary p { color:var(--muted); line-height:1.65; margin:0 0 16px; }
-      .meta-list { display:flex; flex-wrap:wrap; gap:8px; }
-      .meta-list span { padding:8px 10px; border:1px solid var(--edge); color:var(--muted); font-size:.68rem; letter-spacing:.06em; text-transform:uppercase; overflow-wrap:anywhere; }
-      .detail-actions { display:flex; justify-content:space-between; align-items:center; gap:10px; margin:18px 0; padding-top:12px; border-top:1px solid var(--edge); }
-      .toggle-label { color:var(--muted); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; }
-      .edit-toggle { min-width:64px; min-height:44px; padding:8px 12px; border:1px solid var(--edge); background:rgba(255,255,255,.04); color:var(--ink); cursor:pointer; }
-      .edit-toggle.is-on { background:rgba(217,181,107,.14); border-color:var(--gold); }
-      .location-description { margin:0; color:var(--muted); line-height:1.75; }
-      .location-description strong { color:var(--ink); }
-      @media (max-width:860px) {
-        .map-layout.with-panel { grid-template-columns:minmax(0,1fr); }
-        .map-stage-wrap { aspect-ratio:16/10; }
-      }
-      @media (max-width:600px) {
-        .topbar { align-items:flex-start; flex-direction:column-reverse; gap:8px; padding:12px 14px; padding-top:max(12px,env(safe-area-inset-top)); }
-        .header-title { text-align:left; font-size:2.25rem; }
-        .back-link { display:inline-flex; align-items:center; min-height:44px; }
-        .map-layout { gap:10px; padding:10px; padding-bottom:max(10px,env(safe-area-inset-bottom)); }
-        .map-layout.with-panel { grid-template-columns:minmax(0,1fr); }
-        .map-stage-wrap { min-height:0; height:clamp(300px,52svh,560px); max-height:none; aspect-ratio:auto; }
-        .map-stage { min-height:0; }
-        .map-details { padding:16px; }
-        .chapter-summary h2 { font-size:2.2rem; }
-        .chapter-summary p { line-height:1.6; }
-        .panel-toggle { top:10px; right:10px; width:48px; height:48px; }
-        .zoom-controls { right:10px; bottom:10px; gap:8px; }
-        .zoom-controls button { width:48px; height:48px; }
-      }
-      @media (max-height:500px) and (orientation:landscape) {
-        .topbar { padding-block:8px; }
-        .map-layout { padding:8px; }
-        .map-stage-wrap { height:calc(100svh - 78px); min-height:220px; }
-      }
-      @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; transition-duration:.01ms!important; } }
-    </style>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="map.css" />
   </head>
   <body>
     <div class="map-page">
@@ -83,111 +19,69 @@
       </header>
       <main class="map-layout with-panel" id="mapLayout">
         <div class="map-stage-wrap">
+          <div class="toolbar" role="toolbar" aria-label="Map options">
+            <button id="routeBtn" type="button" aria-pressed="true">Route</button>
+            <button id="labelsBtn" type="button" aria-pressed="true">Labels</button>
+          </div>
           <button id="panelToggleBtn" class="panel-toggle" type="button" aria-label="Toggle map details" aria-expanded="true">✎</button>
-          <div class="map-stage" id="mapStage" role="application" aria-label="Interactive campaign map. Drag to pan, use the plus and minus buttons to zoom.">
-            <div class="map-viewport" id="mapViewport"><img class="map-image" id="mapImage" src="image-1.png" alt="Campaign map" draggable="false" /></div>
+          <div
+            class="map-stage"
+            id="mapStage"
+            tabindex="0"
+            role="application"
+            aria-label="Interactive campaign map. Drag to pan, scroll or pinch to zoom. With the map focused, use arrow keys to pan and plus or minus to zoom."
+          >
+            <div class="map-viewport" id="mapViewport">
+              <img class="map-image" id="mapImage" src="image-1.webp" alt="Campaign map" width="2048" height="1536" draggable="false" decoding="async" />
+              <svg class="map-route" id="mapRoute" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><polyline id="routeLine" points="" /></svg>
+            </div>
             <div class="zoom-controls" aria-label="Map zoom controls">
               <button id="zoomInBtn" type="button" aria-label="Zoom in">+</button>
               <button id="zoomOutBtn" type="button" aria-label="Zoom out">−</button>
+              <button id="fitBtn" type="button" aria-label="Reset view" title="Reset view">⌂</button>
             </div>
           </div>
+          <p class="map-hint" id="mapHint">Drag to pan · scroll or pinch to zoom</p>
         </div>
         <aside class="map-details" id="mapDetails" aria-live="polite">
-          <p class="panel-kicker">Waypoint</p>
-          <div class="chapter-summary">
+          <p class="panel-kicker" id="panelKicker">Waypoint</p>
+          <div class="chapter-summary" id="viewPanel">
             <h2 id="map-title">The Known World</h2>
             <p id="map-summary"></p>
             <div class="meta-list"><span id="map-location"></span><span id="map-session"></span></div>
           </div>
+          <form class="editor" id="editorForm" hidden autocomplete="off">
+            <label>Title<input name="title" type="text" /></label>
+            <label>Location<input name="location" type="text" /></label>
+            <label>Session<input name="session" type="text" /></label>
+            <label>Summary<textarea name="summary" rows="4"></textarea></label>
+            <label>Description<textarea name="description" rows="3"></textarea></label>
+            <div class="coords">
+              <label>X (%)<input name="x" type="number" min="0" max="100" step="0.5" /></label>
+              <label>Y (%)<input name="y" type="number" min="0" max="100" step="0.5" /></label>
+            </div>
+          </form>
+          <div class="nav-row" id="navRow">
+            <button class="btn" id="prevBtn" type="button">← Prev</button>
+            <button class="btn" id="nextBtn" type="button">Next →</button>
+            <a class="btn" id="journalLink" href="index.html" hidden>Open in journal</a>
+          </div>
           <div class="detail-actions"><span class="toggle-label">Edit mode</span><button id="editModeBtn" class="edit-toggle" type="button" aria-pressed="false">Off</button></div>
+          <div id="editTools" hidden>
+            <p class="location-description">Drag a marker, or select one and use the arrow keys (hold Shift for larger steps). Edits stay in this browser until you export them and commit <code>campaign-data.json</code>.</p>
+            <div class="editor-tools">
+              <button class="btn primary" id="exportBtn" type="button">Export JSON</button>
+              <button class="btn" id="importBtn" type="button">Import JSON</button>
+              <button class="btn" id="resetBtn" type="button">Discard local edits</button>
+            </div>
+            <input id="importFile" type="file" accept="application/json,.json" hidden />
+          </div>
+          <p class="status-line" id="statusLine" role="status"></p>
           <p class="location-description" id="locationDescription"></p>
         </aside>
       </main>
     </div>
-    <script>
-      const STORAGE_KEY = 'firstLightCampaignMapData';
-      const MAP_EDGE_PADDING = 8;
-      const WORLD_OVERVIEW = {
-        title: 'The Known World', location: 'The First Light Campaign', session: 'World Overview',
-        summary: 'Across the broken frontier of the Old Kingdom, rival realms, haunted woods, and forgotten shrines shape the fate of the campaign. Some roads are safe, most are not, and every travel-worn path carries a story still waiting to be told.',
-        description: 'The campaign unfolds across a fractured frontier of ancient kingdoms, haunted wilds, and forgotten shrines. The world is full of broken oaths, old magic, and danger that waits just beyond the nearest road.', x: 50, y: 50
-      };
-      const DEFAULT_POINTS = [
-        { title:'The Whispering Forest', location:'Forest of Hollow Pine', session:'Session 01', summary:'The party enters the Blackbriar frontier, where a forgotten lantern is said to have warmed the land before the first winter of ruin.', description:'A moonlit woodland of ash-pale trees and whispering roots where the campaign begins beneath a lantern omen and a broken frontier road.', x:18, y:30 },
-        { title:'Ashes of the Moor', location:'The Emberfen', session:'Session 02', summary:'A ruined keep rises from a field of smoldering heather, where the cult’s first ash-mark is found beneath a collapsed bell tower.', description:'A burned moor of cracked stone, collapsing towers, and ash-marked cult sigils.', x:32, y:58 },
-        { title:'The Shattered Tide', location:'Nightmere Coast', session:'Session 03', summary:'A drowned chapel and black tide pull the party toward an enemy they cannot name.', description:'A moonlit coast haunted by drowned shrines and a black tide.', x:62, y:72 },
-        { title:'The Iron Ridge', location:'Stormglass Peaks', session:'Session 04', summary:'The mountains answer with thunder and glacier-cold silence. A stormsteel crown lies hidden in a ruined fortress.', description:'A thunder-ridden mountain pass where broken fortresses cling to glacier cliffs.', x:72, y:28 },
-        { title:'The Glass Marsh', location:'Mire of Sable Reed', session:'Session 05', summary:'The marsh gleams like broken glass beneath the twilight, where reeds whisper in old dialects.', description:'A mirrored swamp of translucent water, whispering reeds, and old oaths.', x:48, y:46 },
-        { title:'The Vault of Echoes', location:'Lair of Silent Bells', session:'Session 06', summary:'Beneath a collapsed citadel, listening stone stores every memory in a different bell tone.', description:'A buried chamber beneath ruined stone where listening bells hold memories.', x:56, y:18 },
-        { title:'The Hollow Crown', location:'Fane of Last Winter', session:'Session 07', summary:'A dead throne room opens beneath a frozen shrine, revealing the last remnant of a kingdom.', description:'A frozen shrine and throne room at the edge of the world.', x:24, y:14 },
-        { title:'First Dawn', location:'Skyreach Observatory', session:'Session 08', summary:'At the peak of the world, the signal of the first dawn waits beneath a temple of stars.', description:'The highest observatory in the world, where a star-temple waits above the clouds.', x:82, y:16 }
-      ];
-      const mapLayout = document.getElementById('mapLayout');
-      const mapStage = document.getElementById('mapStage');
-      const mapViewport = document.getElementById('mapViewport');
-      const mapImage = document.getElementById('mapImage');
-      const mapTitle = document.getElementById('map-title');
-      const mapSummary = document.getElementById('map-summary');
-      const mapLocation = document.getElementById('map-location');
-      const mapSession = document.getElementById('map-session');
-      const locationDescription = document.getElementById('locationDescription');
-      const editModeBtn = document.getElementById('editModeBtn');
-      const panelToggleBtn = document.getElementById('panelToggleBtn');
-      const zoomInBtn = document.getElementById('zoomInBtn');
-      const zoomOutBtn = document.getElementById('zoomOutBtn');
-      let selectedIndex = null, dragIndex = null, dragPan = null, zoom = 1, panX = 0, panY = 0, editMode = false;
-      const MIN_ZOOM = 0.6, MAX_ZOOM = 2.2, ZOOM_STEP = 0.2;
-      const clamp = (value,min,max) => Math.min(Math.max(value,min),max);
-      function normalizePointValue(value, fallback=50) { const number=Number(value); return Number.isFinite(number) ? clamp(number,MAP_EDGE_PADDING,100-MAP_EDGE_PADDING) : fallback; }
-      function getPanLimits() {
-        const w=mapStage.clientWidth, h=mapStage.clientHeight;
-        const iw=mapImage.naturalWidth || w, ih=mapImage.naturalHeight || h;
-        return { maxX:Math.max(0,(iw*zoom-w)/2), maxY:Math.max(0,(ih*zoom-h)/2) };
-      }
-      function syncPanPosition() { const {maxX,maxY}=getPanLimits(); panX=clamp(panX,-maxX,maxX); panY=clamp(panY,-maxY,maxY); mapViewport.style.transform=`translate(${panX}px,${panY}px) scale(${zoom})`; }
-      function updateZoomButtons() { zoomInBtn.disabled=zoom>=MAX_ZOOM; zoomOutBtn.disabled=zoom<=MIN_ZOOM; }
-      function setPanelVisible(visible) { mapLayout.classList.toggle('with-panel',visible); panelToggleBtn.setAttribute('aria-expanded',String(visible)); panelToggleBtn.title=visible?'Hide map details':'Show map details'; }
-      function setEditMode(enabled) { editMode=Boolean(enabled); editModeBtn.textContent=editMode?'On':'Off'; editModeBtn.classList.toggle('is-on',editMode); editModeBtn.setAttribute('aria-pressed',String(editMode)); setPanelVisible(!editMode); }
-      function updateDetailPanel() {
-        const point=selectedIndex!==null ? points[selectedIndex] : null;
-        const detail=point || WORLD_OVERVIEW;
-        mapTitle.textContent=detail.title; mapSummary.textContent=detail.summary; mapLocation.textContent=detail.location; mapSession.textContent=detail.session;
-        const strong=document.createElement('strong'); strong.textContent=`${point ? point.location : 'World overview'}: `;
-        locationDescription.replaceChildren(strong,document.createTextNode(point ? (point.description || point.summary) : WORLD_OVERVIEW.description));
-      }
-      function loadPoints() {
-        try { const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)); if(Array.isArray(saved)&&saved.length) return saved.map(p=>({...p,x:normalizePointValue(p.x),y:normalizePointValue(p.y),description:p.description||p.summary||''})); }
-        catch(error) { console.warn('Unable to load saved map points.',error); }
-        return DEFAULT_POINTS;
-      }
-      function persistPoints() { try { localStorage.setItem(STORAGE_KEY,JSON.stringify(points)); } catch(error) { console.warn('Unable to save map points.',error); } }
-      function renderPins() {
-        mapViewport.querySelectorAll('.map-pin').forEach(pin=>pin.remove());
-        points.forEach((point,index)=>{
-          const pin=document.createElement('button'); pin.type='button'; pin.className='map-pin'+(index===selectedIndex?' selected':''); pin.style.left=`${point.x}%`; pin.style.top=`${point.y}%`; pin.title=point.title; pin.setAttribute('aria-label',`${point.title} marker`);
-          pin.addEventListener('click',event=>{ event.stopPropagation(); selectedIndex=index; renderPins(); updateDetailPanel(); });
-          pin.addEventListener('pointerdown',event=>{ event.stopPropagation(); if(editMode){ event.preventDefault(); dragIndex=index; selectedIndex=index; pin.setPointerCapture?.(event.pointerId); updateDetailPanel(); } });
-          mapViewport.appendChild(pin);
-        });
-      }
-      function zoomMap(direction) { const next=clamp(zoom+direction*ZOOM_STEP,MIN_ZOOM,MAX_ZOOM); if(next===zoom)return; zoom=next; syncPanPosition(); updateZoomButtons(); }
-      function recenterMap() { zoom=1; panX=0; panY=0; syncPanPosition(); updateZoomButtons(); }
-      mapStage.addEventListener('pointerdown',event=>{ if(event.target.closest('.map-pin,.panel-toggle,.zoom-controls'))return; dragPan={x:event.clientX,y:event.clientY,pointerId:event.pointerId}; mapStage.setPointerCapture?.(event.pointerId); mapStage.classList.add('dragging'); });
-      mapStage.addEventListener('pointermove',event=>{
-        if(dragIndex!==null&&editMode){ const rect=mapStage.getBoundingClientRect(), p=points[dragIndex]; if(!p)return; p.x=normalizePointValue(((event.clientX-rect.left)/rect.width)*100); p.y=normalizePointValue(((event.clientY-rect.top)/rect.height)*100); selectedIndex=dragIndex; persistPoints(); renderPins(); updateDetailPanel(); return; }
-        if(dragPan){ const dx=event.clientX-dragPan.x,dy=event.clientY-dragPan.y; dragPan.x=event.clientX; dragPan.y=event.clientY; panX+=dx/zoom; panY+=dy/zoom; syncPanPosition(); }
-      });
-      function finishPointer(){ dragIndex=null; if(dragPan){ dragPan=null; mapStage.classList.remove('dragging'); } }
-      mapStage.addEventListener('pointerup',finishPointer); mapStage.addEventListener('pointercancel',finishPointer); mapStage.addEventListener('lostpointercapture',finishPointer);
-      mapStage.addEventListener('click',event=>{ if(event.target.closest('.map-pin,.panel-toggle,.zoom-controls'))return; if(event.target===mapStage||event.target===mapImage){ selectedIndex=null; renderPins(); updateDetailPanel(); } });
-      panelToggleBtn.addEventListener('click',event=>{ event.stopPropagation(); setPanelVisible(!mapLayout.classList.contains('with-panel')); });
-      editModeBtn.addEventListener('click',event=>{ event.stopPropagation(); setEditMode(!editMode); });
-      zoomInBtn.addEventListener('click',()=>zoomMap(1)); zoomOutBtn.addEventListener('click',()=>zoomMap(-1));
-      const points=loadPoints();
-      mapImage.addEventListener('load',syncPanPosition,{once:true});
-      window.addEventListener('resize',syncPanPosition);
-      setPanelVisible(true); setEditMode(false); renderPins(); updateDetailPanel(); updateZoomButtons();
-      if(mapImage.complete) syncPanPosition();
-    </script>
+    <script src="data.js"></script>
+    <script src="map.js"></script>
   </body>
 </html>
