@@ -2,11 +2,11 @@
 (function () {
   const DATA_URL = "campaign-data.json";
   const KEYS = {
-    edits: "firstLightEdits.v2",
+    points: "firstLightPoints.v3",
     progress: "firstLightProgress.v1",
     notes: "firstLightNotes.v1"
   };
-  const EDITABLE = ["title", "location", "session", "summary", "description", "x", "y"];
+  const POINT_FIELDS = ["id", "title", "location", "summary", "description", "x", "y", "chapter"];
 
   function readStore(key, fallback) {
     try {
@@ -42,6 +42,13 @@
         throw new Error(`Chapter ${index + 1} needs an id and a title.`);
       }
     });
+    if (!Array.isArray(data.points)) throw new Error("Campaign data must contain a \"points\" array.");
+    const ids = new Set();
+    data.points.forEach((point, index) => {
+      if (!point.id || !point.title) throw new Error(`Point ${index + 1} needs an id and a title.`);
+      if (ids.has(point.id)) throw new Error(`Point id "${point.id}" is duplicated.`);
+      ids.add(point.id);
+    });
     return data;
   }
 
@@ -51,62 +58,48 @@
     return validate(await response.json());
   }
 
-  function getEdits() {
-    const edits = readStore(KEYS.edits, {});
-    return edits && typeof edits === "object" ? edits : {};
+  /* Normalises a point; a link to a chapter that does not exist is dropped. */
+  function cleanPoint(point, chapters) {
+    const clean = {};
+    POINT_FIELDS.forEach((field) => {
+      clean[field] = point[field] ?? "";
+    });
+    clean.x = clampPercent(point.x);
+    clean.y = clampPercent(point.y);
+    clean.chapter = chapters.some((chapter) => chapter.id === point.chapter) ? point.chapter : "";
+    return clean;
   }
 
-  function setChapterEdit(id, patch) {
-    const edits = getEdits();
-    edits[id] = { ...edits[id], ...patch };
-    return writeStore(KEYS.edits, edits);
+  function getPointsOverride() {
+    const saved = readStore(KEYS.points, null);
+    return Array.isArray(saved) ? saved : null;
+  }
+
+  function setPoints(points) {
+    return writeStore(KEYS.points, points.map((point) => ({ ...point })));
   }
 
   function clearEdits() {
     try {
-      localStorage.removeItem(KEYS.edits);
+      localStorage.removeItem(KEYS.points);
     } catch (error) {
       console.warn("Unable to clear edits.", error);
     }
   }
 
   function hasEdits() {
-    return Object.keys(getEdits()).length > 0;
+    return getPointsOverride() !== null;
   }
 
-  function applyEdits(data, edits) {
-    return {
-      ...data,
-      chapters: data.chapters.map((chapter) => {
-        const patch = edits[chapter.id] || {};
-        const merged = { ...chapter };
-        EDITABLE.forEach((field) => {
-          if (patch[field] !== undefined) merged[field] = patch[field];
-        });
-        merged.x = clampPercent(merged.x);
-        merged.y = clampPercent(merged.y);
-        return merged;
-      })
-    };
+  function applyEdits(data) {
+    const source = getPointsOverride() || data.points;
+    return { ...data, points: source.map((point) => cleanPoint(point, data.chapters)) };
   }
 
-  /* Converts an imported campaign file into a set of local edits. */
-  function editsFromImport(published, imported) {
+  /* Returns the points from an imported campaign file. */
+  function pointsFromImport(published, imported) {
     validate(imported);
-    const edits = {};
-    imported.chapters.forEach((chapter) => {
-      if (!published.chapters.some((item) => item.id === chapter.id)) return;
-      const patch = {};
-      EDITABLE.forEach((field) => {
-        if (chapter[field] !== undefined) patch[field] = chapter[field];
-      });
-      edits[chapter.id] = patch;
-    });
-    return edits;
-  }
-
-  function replaceEdits(edits) {
-    return writeStore(KEYS.edits, edits);
+    return imported.points.map((point) => cleanPoint(point, published.chapters));
   }
 
   const questKey = (chapterId, index) => `${chapterId}:${index}`;
@@ -136,13 +129,12 @@
 
   window.FirstLight = {
     fetchPublished,
-    getEdits,
-    setChapterEdit,
+    getPointsOverride,
+    setPoints,
     clearEdits,
     hasEdits,
     applyEdits,
-    editsFromImport,
-    replaceEdits,
+    pointsFromImport,
     clampPercent,
     isQuestDone,
     setQuestDone,

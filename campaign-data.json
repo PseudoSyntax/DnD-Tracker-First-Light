@@ -1,5 +1,5 @@
 {
-  "version": 2,
+  "version": 3,
   "currentChapter": "whispering-forest",
   "world": {
     "title": "The Known World",
@@ -9,6 +9,88 @@
     "description": "The campaign unfolds across a fractured frontier of ancient kingdoms, haunted wilds, and forgotten shrines. The world is full of broken oaths, old magic, and danger that waits just beyond the nearest road."
   },
   "party": [],
+  "points": [
+    {
+      "id": "whispering-forest",
+      "title": "The Whispering Forest",
+      "location": "Forest of Hollow Pine",
+      "summary": "The party enters the Blackbriar frontier, where a forgotten lantern is said to have warmed the land before the first winter of ruin. Old roots sway like whispers, and every trail seems to remember the names of those who are already lost.",
+      "description": "A moonlit woodland of ash-pale trees and whispering roots where the campaign begins beneath a lantern omen and a broken frontier road.",
+      "x": 26,
+      "y": 32,
+      "chapter": "whispering-forest"
+    },
+    {
+      "id": "ashes-of-the-moor",
+      "title": "Ashes of the Moor",
+      "location": "The Emberfen",
+      "summary": "A ruined keep rises from a field of smoldering heather, where the cult’s first ash-mark is found beneath a collapsed bell tower. The air tastes of smoke and prophecy.",
+      "description": "A burned moor of cracked stone, collapsing towers, and ash-marked cult sigils.",
+      "x": 48,
+      "y": 49,
+      "chapter": "ashes-of-the-moor"
+    },
+    {
+      "id": "shattered-tide",
+      "title": "The Shattered Tide",
+      "location": "Nightmere Coast",
+      "summary": "A drowned chapel and black tide pull the party toward an enemy they cannot name. Strange sea sigils pulse beneath the moon, and the dead follow the sound of bells across the sand.",
+      "description": "A moonlit coast haunted by drowned shrines and a black tide.",
+      "x": 75,
+      "y": 67,
+      "chapter": "shattered-tide"
+    },
+    {
+      "id": "iron-ridge",
+      "title": "The Iron Ridge",
+      "location": "Stormglass Peaks",
+      "summary": "The mountains answer with thunder and glacier-cold silence. Within the ruined fortress, a crown of stormsteel is hidden beyond a door that only opens to a vow.",
+      "description": "A thunder-ridden mountain pass where broken fortresses cling to glacier cliffs.",
+      "x": 35,
+      "y": 68,
+      "chapter": "iron-ridge"
+    },
+    {
+      "id": "glass-marsh",
+      "title": "The Glass Marsh",
+      "location": "Mire of Sable Reed",
+      "summary": "The marsh gleams like broken glass beneath the twilight. The party follows a trail of lantern-light through reeds that whisper in a hundred old dialects, each one naming a forbidden oath.",
+      "description": "A mirrored swamp of translucent water, whispering reeds, and old oaths.",
+      "x": 58,
+      "y": 78,
+      "chapter": "glass-marsh"
+    },
+    {
+      "id": "vault-of-echoes",
+      "title": "The Vault of Echoes",
+      "location": "Lair of Silent Bells",
+      "summary": "Beneath the ruins of a collapsed citadel, the party uncovers a chamber of listening stone where every memory is stored in a different bell tone. The cult’s plan becomes more dreadful and more intimate.",
+      "description": "A buried chamber beneath ruined stone where listening bells hold memories.",
+      "x": 66,
+      "y": 42,
+      "chapter": "vault-of-echoes"
+    },
+    {
+      "id": "hollow-crown",
+      "title": "The Hollow Crown",
+      "location": "Fane of Last Winter",
+      "summary": "A dead throne room opens beneath a frozen shrine, revealing the final living remnant of a kingdom that chose ritual over mercy. The party gains the choice to either break or wear the crown’s burden.",
+      "description": "A frozen shrine and throne room at the edge of the world.",
+      "x": 23,
+      "y": 74,
+      "chapter": "hollow-crown"
+    },
+    {
+      "id": "first-dawn",
+      "title": "First Dawn",
+      "location": "Skyreach Observatory",
+      "summary": "At the peak of the world, the signal of the first dawn waits under a temple of stars. The final cost of the ritual is no longer hidden; it is carried in the hands of the heroes who chose to stand against it.",
+      "description": "The highest observatory in the world, where a star-temple waits above the clouds.",
+      "x": 50,
+      "y": 20,
+      "chapter": "first-dawn"
+    }
+  ],
   "chapters": [
     {
       "id": "whispering-forest",
@@ -18,13 +100,16 @@
       "session": "Session 01",
       "summary": "The party enters the Blackbriar frontier, where a forgotten lantern is said to have warmed the land before the first winter of ruin. Old roots sway like whispers, and every trail seems to remember the names of those who are already lost.",
       "snippet": "A forest of ash and moonlight where a lantern-first omen sets the campaign in motion.",
-      "description": "A moonlit woodland of ash-pale trees and whispering roots where the campaign begins beneath a lantern omen and a broken frontier road.",
       "image": "https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1200&q=80",
-      "x": 26,
-      "y": 32,
       "quests": [
-        { "text": "Follow the trail into the Blackbriar frontier", "done": false },
-        { "text": "Learn the legend of the forgotten lantern", "done": false }
+        {
+          "text": "Follow the trail into the Blackbriar frontier",
+          "done": false
+        },
+        {
+          "text": "Learn the legend of the forgotten lantern",
+          "done": false
+        }
       ],
       "npcs": []
     },
@@ -36,11 +121,13 @@
       "session": "Session 02",
       "summary": "A ruined keep rises from a field of smoldering heather, where the cult’s first ash-mark is found beneath a collapsed bell tower. The air tastes of smoke and prophecy.",
       "snippet": "A burned moor of ruined keeps, bell towers, and ash-marked cult sigils.",
-      "description": "A burned moor of cracked stone, collapsing towers, and ash-marked cult sigils.",
       "image": "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80",
-      "x": 48,
-      "y": 49,
-      "quests": [{ "text": "Find the cult’s first ash-mark beneath the bell tower", "done": false }],
+      "quests": [
+        {
+          "text": "Find the cult’s first ash-mark beneath the bell tower",
+          "done": false
+        }
+      ],
       "npcs": []
     },
     {
@@ -51,11 +138,13 @@
       "session": "Session 03",
       "summary": "A drowned chapel and black tide pull the party toward an enemy they cannot name. Strange sea sigils pulse beneath the moon, and the dead follow the sound of bells across the sand.",
       "snippet": "A moonlit coast haunted by drowned shrines and a dark sea ritual.",
-      "description": "A moonlit coast haunted by drowned shrines and a black tide.",
       "image": "https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1200&q=80",
-      "x": 75,
-      "y": 67,
-      "quests": [{ "text": "Investigate the drowned chapel and its sea sigils", "done": false }],
+      "quests": [
+        {
+          "text": "Investigate the drowned chapel and its sea sigils",
+          "done": false
+        }
+      ],
       "npcs": []
     },
     {
@@ -66,13 +155,16 @@
       "session": "Session 04",
       "summary": "The mountains answer with thunder and glacier-cold silence. Within the ruined fortress, a crown of stormsteel is hidden beyond a door that only opens to a vow.",
       "snippet": "A thunder-ridden mountain pass guarding a broken crown of stormsteel.",
-      "description": "A thunder-ridden mountain pass where broken fortresses cling to glacier cliffs.",
       "image": "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80",
-      "x": 35,
-      "y": 68,
       "quests": [
-        { "text": "Open the door that answers only to a vow", "done": false },
-        { "text": "Recover the crown of stormsteel", "done": false }
+        {
+          "text": "Open the door that answers only to a vow",
+          "done": false
+        },
+        {
+          "text": "Recover the crown of stormsteel",
+          "done": false
+        }
       ],
       "npcs": []
     },
@@ -84,11 +176,13 @@
       "session": "Session 05",
       "summary": "The marsh gleams like broken glass beneath the twilight. The party follows a trail of lantern-light through reeds that whisper in a hundred old dialects, each one naming a forbidden oath.",
       "snippet": "A mirrored swamp where lanterns flicker through reeds and old oaths.",
-      "description": "A mirrored swamp of translucent water, whispering reeds, and old oaths.",
       "image": "https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&w=1200&q=80",
-      "x": 58,
-      "y": 78,
-      "quests": [{ "text": "Follow the lantern-light through the reeds", "done": false }],
+      "quests": [
+        {
+          "text": "Follow the lantern-light through the reeds",
+          "done": false
+        }
+      ],
       "npcs": []
     },
     {
@@ -99,11 +193,13 @@
       "session": "Session 06",
       "summary": "Beneath the ruins of a collapsed citadel, the party uncovers a chamber of listening stone where every memory is stored in a different bell tone. The cult’s plan becomes more dreadful and more intimate.",
       "snippet": "A hidden vault of resonant stone and memory-born danger.",
-      "description": "A buried chamber beneath ruined stone where listening bells hold memories.",
       "image": "https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=1200&q=80",
-      "x": 66,
-      "y": 42,
-      "quests": [{ "text": "Uncover the cult’s plan in the chamber of listening stone", "done": false }],
+      "quests": [
+        {
+          "text": "Uncover the cult’s plan in the chamber of listening stone",
+          "done": false
+        }
+      ],
       "npcs": []
     },
     {
@@ -114,11 +210,13 @@
       "session": "Session 07",
       "summary": "A dead throne room opens beneath a frozen shrine, revealing the final living remnant of a kingdom that chose ritual over mercy. The party gains the choice to either break or wear the crown’s burden.",
       "snippet": "A frozen shrine and a throne room where old kings do not rest quietly.",
-      "description": "A frozen shrine and throne room at the edge of the world.",
       "image": "https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1200&q=80",
-      "x": 23,
-      "y": 74,
-      "quests": [{ "text": "Choose to break or wear the crown’s burden", "done": false }],
+      "quests": [
+        {
+          "text": "Choose to break or wear the crown’s burden",
+          "done": false
+        }
+      ],
       "npcs": []
     },
     {
@@ -129,11 +227,13 @@
       "session": "Session 08",
       "summary": "At the peak of the world, the signal of the first dawn waits under a temple of stars. The final cost of the ritual is no longer hidden; it is carried in the hands of the heroes who chose to stand against it.",
       "snippet": "The campaign ends beneath a rising sky and the first true dawn.",
-      "description": "The highest observatory in the world, where a star-temple waits above the clouds.",
       "image": "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1200&q=80",
-      "x": 50,
-      "y": 20,
-      "quests": [{ "text": "Stand against the ritual and bear its final cost", "done": false }],
+      "quests": [
+        {
+          "text": "Stand against the ritual and bear its final cost",
+          "done": false
+        }
+      ],
       "npcs": []
     }
   ]

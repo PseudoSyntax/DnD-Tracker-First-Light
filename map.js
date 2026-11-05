@@ -161,9 +161,9 @@
 
   function centerOn(index) {
     if (zoom <= 1) return;
-    const chapter = campaign.chapters[index];
-    panX = -((chapter.x - 50) / 100) * size.w * zoom;
-    panY = -((chapter.y - 50) / 100) * size.h * zoom;
+    const point = campaign.points[index];
+    panX = -((point.x - 50) / 100) * size.w * zoom;
+    panY = -((point.y - 50) / 100) * size.h * zoom;
     applyTransform();
   }
 
@@ -177,19 +177,21 @@
 
   /* ---------- Pins and route ---------- */
 
+  const chapterIndexOf = (point) => campaign.chapters.findIndex((chapter) => chapter.id === point.chapter);
+  const chapterOf = (point) => campaign.chapters[chapterIndexOf(point)] || null;
+
   function currentIndex() {
     return campaign.chapters.findIndex((chapter) => chapter.id === campaign.currentChapter);
   }
 
   function buildPins() {
     pins.forEach((pin) => pin.remove());
-    pins = campaign.chapters.map((chapter, index) => {
+    pins = campaign.points.map((point, index) => {
       const pin = document.createElement("button");
       pin.type = "button";
       pin.className = "map-pin";
       const dot = document.createElement("span");
       dot.className = "dot";
-      dot.textContent = chapter.number;
       const label = document.createElement("span");
       label.className = "label";
       pin.append(dot, label);
@@ -214,37 +216,54 @@
     updatePins();
   }
 
+  /* The route joins linked points in chapter order; unlinked points are left out. */
+  function updateRoute() {
+    const linked = campaign.points
+      .map((point) => ({ point, order: chapterIndexOf(point) }))
+      .filter((item) => item.order !== -1)
+      .sort((a, b) => a.order - b.order);
+    routeLine.setAttribute("points", linked.map(({ point }) => `${point.x},${point.y}`).join(" "));
+  }
+
   function updatePins() {
     const current = currentIndex();
-    campaign.chapters.forEach((chapter, index) => {
+    campaign.points.forEach((point, index) => {
       const pin = pins[index];
-      pin.style.left = `${chapter.x}%`;
-      pin.style.top = `${chapter.y}%`;
-      pin.title = `${chapter.title} — ${chapter.location}`;
-      pin.setAttribute("aria-label", `Chapter ${chapter.number}: ${chapter.title}`);
+      const chapter = chapterOf(point);
+      const order = chapterIndexOf(point);
+      pin.style.left = `${point.x}%`;
+      pin.style.top = `${point.y}%`;
+      pin.title = point.location ? `${point.title} — ${point.location}` : point.title;
+      pin.setAttribute("aria-label", chapter ? `Chapter ${chapter.number}: ${point.title}` : point.title);
       pin.setAttribute("aria-pressed", String(index === selectedIndex));
       pin.classList.toggle("selected", index === selectedIndex);
-      pin.classList.toggle("current", index === current);
-      pin.classList.toggle("past", current !== -1 && index < current);
-      pin.querySelector(".label").textContent = chapter.title;
+      pin.classList.toggle("unlinked", !chapter);
+      pin.classList.toggle("current", Boolean(chapter) && order === current);
+      pin.classList.toggle("past", Boolean(chapter) && current !== -1 && order < current);
+      pin.querySelector(".dot").textContent = chapter ? chapter.number : "•";
+      pin.querySelector(".label").textContent = point.title;
     });
-    routeLine.setAttribute("points", campaign.chapters.map((chapter) => `${chapter.x},${chapter.y}`).join(" "));
+    updateRoute();
   }
 
   function movePin(index, x, y) {
-    const chapter = campaign.chapters[index];
-    chapter.x = x;
-    chapter.y = y;
+    const point = campaign.points[index];
+    point.x = x;
+    point.y = y;
     pins[index].style.left = `${x}%`;
     pins[index].style.top = `${y}%`;
-    routeLine.setAttribute("points", campaign.chapters.map((item) => `${item.x},${item.y}`).join(" "));
-    if (selectedIndex === index) syncCoordInputs(chapter);
+    updateRoute();
+    if (selectedIndex === index) syncCoordInputs(point);
   }
 
-  function commitPin(index) {
-    const chapter = campaign.chapters[index];
-    FirstLight.setChapterEdit(chapter.id, { x: chapter.x, y: chapter.y });
-    setStatus("Position saved locally. Export to publish.");
+  function persistPoints() {
+    FirstLight.setPoints(campaign.points);
+    updateSaveIndicator();
+  }
+
+  function commitPin() {
+    persistPoints();
+    setStatus("Position saved locally. Use Save to send it for review.");
   }
 
   function onPinKey(event, index) {
@@ -255,72 +274,146 @@
       return;
     }
     if (!editMode) return;
+    if (event.key === "Delete") {
+      event.preventDefault();
+      deletePoint(index);
+      return;
+    }
     const step = event.shiftKey ? 2 : 0.5;
     const delta = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, -step], ArrowDown: [0, step] }[event.key];
     if (!delta) return;
     event.preventDefault();
-    const chapter = campaign.chapters[index];
+    const point = campaign.points[index];
     movePin(
       index,
-      clamp(round1(chapter.x + delta[0]), EDGE_PADDING, 100 - EDGE_PADDING),
-      clamp(round1(chapter.y + delta[1]), EDGE_PADDING, 100 - EDGE_PADDING)
+      clamp(round1(point.x + delta[0]), EDGE_PADDING, 100 - EDGE_PADDING),
+      clamp(round1(point.y + delta[1]), EDGE_PADDING, 100 - EDGE_PADDING)
     );
-    commitPin(index);
+    commitPin();
+  }
+
+  /* ---------- Adding and deleting points ---------- */
+
+  function newPointId() {
+    let id;
+    do {
+      id = `point-${Math.random().toString(36).slice(2, 8)}`;
+    } while (campaign.points.some((point) => point.id === id));
+    return id;
+  }
+
+  function addPoint(x, y) {
+    campaign.points.push({
+      id: newPointId(),
+      title: "New point",
+      location: "",
+      summary: "",
+      description: "",
+      x,
+      y,
+      chapter: ""
+    });
+    persistPoints();
+    buildPins();
+    select(campaign.points.length - 1, { keepView: true });
+    setPanelVisible(true);
+    editorForm.elements.title.focus();
+    editorForm.elements.title.select();
+    setStatus("Point added. Name it and link it to a chapter.");
+  }
+
+  function addPointAtCenter() {
+    const rect = mapStage.getBoundingClientRect();
+    const point = pointToPercent(rect.left + rect.width / 2, rect.top + rect.height / 2);
+    addPoint(point.x, point.y);
+  }
+
+  function deletePoint(index) {
+    const point = campaign.points[index];
+    if (!point || !confirm(`Delete "${point.title}"? This only affects your local edits until you save.`)) return;
+    campaign.points.splice(index, 1);
+    selectedIndex = null;
+    persistPoints();
+    buildPins();
+    select(null);
+    mapStage.focus();
+    setStatus(`Deleted "${point.title}".`);
   }
 
   /* ---------- Details panel ---------- */
 
   function select(index, { keepView = false, center = false } = {}) {
     selectedIndex = index;
-    history.replaceState(null, "", `${location.pathname}${location.search}${index === null ? "" : `#${campaign.chapters[index].id}`}`);
+    history.replaceState(null, "", `${location.pathname}${location.search}${index === null ? "" : `#${campaign.points[index].id}`}`);
     updatePins();
     renderPanel();
     if (center && index !== null && !keepView) centerOn(index);
   }
 
-  function syncCoordInputs(chapter) {
-    editorForm.elements.x.value = chapter.x;
-    editorForm.elements.y.value = chapter.y;
+  function syncCoordInputs(point) {
+    editorForm.elements.x.value = point.x;
+    editorForm.elements.y.value = point.y;
+  }
+
+  function fillChapterOptions() {
+    const field = editorForm.elements.chapter;
+    field.replaceChildren(new Option("Not linked to a chapter", ""));
+    campaign.chapters.forEach((chapter) => field.add(new Option(`Chapter ${chapter.number}: ${chapter.title}`, chapter.id)));
   }
 
   function renderPanel() {
-    const chapter = selectedIndex !== null ? campaign.chapters[selectedIndex] : null;
-    const showEditor = editMode && chapter;
+    const point = selectedIndex !== null ? campaign.points[selectedIndex] : null;
+    const chapter = point ? chapterOf(point) : null;
+    const showEditor = editMode && point;
     viewPanel.hidden = Boolean(showEditor);
     editorForm.hidden = !showEditor;
     editTools.hidden = !editMode;
+    $("addPointBtn").hidden = !editMode;
     journalLink.hidden = !chapter;
-    panelKicker.textContent = chapter ? `Waypoint ${chapter.number} of ${campaign.chapters.length}` : "Waypoint";
+    panelKicker.textContent = point
+      ? `${chapter ? `Chapter ${chapter.number} · ` : ""}Point ${selectedIndex + 1} of ${campaign.points.length}`
+      : "Waypoint";
 
-    if (chapter) {
-      journalLink.href = `index.html#${chapter.id}`;
-      for (const name of ["title", "location", "session", "summary", "description", "x", "y"]) {
-        editorForm.elements[name].value = chapter[name] ?? "";
+    if (point) {
+      for (const name of ["title", "location", "summary", "description", "x", "y", "chapter"]) {
+        editorForm.elements[name].value = point[name] ?? "";
       }
     }
+    if (chapter) {
+      journalLink.href = `index.html#${chapter.id}`;
+      journalLink.textContent = `Open chapter ${chapter.number} in journal`;
+    }
 
-    const detail = chapter || campaign.world;
+    const detail = point
+      ? {
+          title: point.title,
+          summary: point.summary || chapter?.summary || "",
+          location: point.location || chapter?.location || "",
+          session: chapter?.session || ""
+        }
+      : campaign.world;
     mapTitle.textContent = detail.title;
     mapSummary.textContent = detail.summary;
     mapLocation.textContent = detail.location;
     mapSession.textContent = detail.session;
 
-    if (editMode && !chapter) {
-      locationDescription.textContent = "Select a marker to edit its details.";
+    if (editMode && !point) {
+      locationDescription.textContent = "Select a marker to edit it, or use Add point (double-click the map also works).";
     } else if (showEditor) {
       locationDescription.textContent = "";
     } else {
       const strong = document.createElement("strong");
-      strong.textContent = `${chapter ? chapter.location : "World overview"}: `;
+      strong.textContent = `${point ? detail.location || point.title : "World overview"}: `;
       locationDescription.replaceChildren(
         strong,
-        document.createTextNode(chapter ? chapter.description || chapter.summary : campaign.world.description)
+        document.createTextNode(point ? point.description || detail.summary : campaign.world.description)
       );
     }
   }
 
   function step(direction) {
-    const count = campaign.chapters.length;
+    const count = campaign.points.length;
+    if (!count) return;
     const next = selectedIndex === null ? (direction > 0 ? 0 : count - 1) : (selectedIndex + direction + count) % count;
     select(next, { center: true });
     pins[next].focus({ preventScroll: true });
@@ -339,7 +432,7 @@
     editModeBtn.setAttribute("aria-pressed", String(editMode));
     mapStage.classList.toggle("editing", editMode);
     $("mapHint").textContent = editMode
-      ? "Edit mode: drag markers, or select one and use arrow keys"
+      ? "Edit mode: drag markers, double-click to add a point"
       : "Drag to pan · scroll or pinch to zoom";
     if (editMode) setPanelVisible(true);
     renderPanel();
@@ -399,7 +492,7 @@
 
   function finishPointer(event) {
     if (dragIndex !== null) {
-      if (moved) commitPin(dragIndex);
+      if (moved) commitPin();
       dragIndex = null;
     }
     pointers.delete(event.pointerId);
@@ -458,18 +551,27 @@
 
   editorForm.addEventListener("input", (event) => {
     if (selectedIndex === null) return;
-    const chapter = campaign.chapters[selectedIndex];
+    const point = campaign.points[selectedIndex];
     const { name, value } = event.target;
     if (name === "x" || name === "y") {
       if (value === "") return;
-      chapter[name] = clamp(FirstLight.clampPercent(value, chapter[name]), 0, 100);
-      updatePins();
+      point[name] = clamp(FirstLight.clampPercent(value, point[name]), 0, 100);
     } else {
-      chapter[name] = value;
-      if (name === "title" || name === "location") updatePins();
+      point[name] = value;
     }
-    FirstLight.setChapterEdit(chapter.id, { [name]: chapter[name] });
-    setStatus("Saved locally. Export to publish.");
+    updatePins();
+    persistPoints();
+    setStatus("Saved locally. Use Save to send it for review.");
+  });
+  editorForm.addEventListener("change", (event) => {
+    if (event.target.name === "chapter") renderPanel();
+  });
+  $("deleteBtn").addEventListener("click", () => selectedIndex !== null && deletePoint(selectedIndex));
+  $("addPointBtn").addEventListener("click", addPointAtCenter);
+  mapStage.addEventListener("dblclick", (event) => {
+    if (!editMode || event.target.closest(".map-pin, .zoom-controls")) return;
+    const point = pointToPercent(event.clientX, event.clientY);
+    addPoint(point.x, point.y);
   });
   editorForm.addEventListener("submit", (event) => event.preventDefault());
 
@@ -574,8 +676,7 @@
     importFile.value = "";
     if (!file) return;
     try {
-      const edits = FirstLight.editsFromImport(published, JSON.parse(await file.text()));
-      FirstLight.replaceEdits(edits);
+      FirstLight.setPoints(FirstLight.pointsFromImport(published, JSON.parse(await file.text())));
       rebuild();
       setStatus("Imported as local edits.");
     } catch (error) {
@@ -642,8 +743,10 @@
 
   function indexFromHash() {
     const id = decodeURIComponent(location.hash.slice(1));
-    const index = campaign.chapters.findIndex((chapter) => chapter.id === id);
-    return index === -1 ? null : index;
+    const byId = campaign.points.findIndex((point) => point.id === id);
+    if (byId !== -1) return byId;
+    const byChapter = campaign.points.findIndex((point) => point.chapter === id);
+    return byChapter === -1 ? null : byChapter;
   }
   window.addEventListener("hashchange", () => {
     const index = indexFromHash();
@@ -651,8 +754,9 @@
   });
 
   function rebuild() {
-    campaign = FirstLight.applyEdits(published, FirstLight.getEdits());
-    if (selectedIndex !== null && selectedIndex >= campaign.chapters.length) selectedIndex = null;
+    campaign = FirstLight.applyEdits(published);
+    if (selectedIndex !== null && selectedIndex >= campaign.points.length) selectedIndex = null;
+    fillChapterOptions();
     buildPins();
     renderPanel();
   }
