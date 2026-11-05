@@ -17,6 +17,8 @@
   const viewPanel = $("viewPanel");
   const editorForm = $("editorForm");
   const editTools = $("editTools");
+  const savePanel = $("savePanel");
+  const saveBtn = $("saveBtn");
   const locationDescription = $("locationDescription");
   const statusLine = $("statusLine");
   const journalLink = $("journalLink");
@@ -63,6 +65,7 @@
   }
 
   function setStatus(message) {
+    queueMicrotask(() => saveBtn.classList.toggle("has-edits", FirstLight.hasEdits()));
     statusLine.textContent = message || (FirstLight.hasEdits() ? "Local edits active in this browser." : "");
   }
 
@@ -522,6 +525,20 @@
     });
     return pr.html_url;
   }
+
+  function updateSaveIndicator() {
+    saveBtn.classList.toggle("has-edits", FirstLight.hasEdits());
+  }
+
+  saveBtn.addEventListener("click", () => {
+    const open = savePanel.hidden;
+    savePanel.hidden = !open;
+    saveBtn.setAttribute("aria-expanded", String(open));
+    if (open) {
+      setPanelVisible(true);
+      $("tokenInput").focus();
+    }
+  });
 
   $("publishBtn").addEventListener("click", async () => {
     const content = `${JSON.stringify(campaign, null, 2)}\n`;

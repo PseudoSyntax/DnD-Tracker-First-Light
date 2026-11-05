@@ -84,6 +84,13 @@ a:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
 .editor-tools .btn.primary { border-color:#00703c; }
 .token-field { display:grid; gap:4px; margin-top:12px; color:var(--im-secondary); font-size:.68rem; letter-spacing:.08em; text-transform:uppercase; }
 .token-field input { width:100%; padding:8px 10px; border:2px solid var(--im-fg); border-radius:0; background:var(--im-bg); color:var(--im-fg); letter-spacing:0; text-transform:none; font-size:.8rem; }
+.im-btn--save { background:#00703c; color:#fff; box-shadow:inset 0 -2px 0 #002d18; }
+.im-btn--save:hover:not(:disabled) { background:#005a30; }
+.im-btn--save.has-edits::after { content:""; width:8px; height:8px; margin-left:8px; border-radius:50%; background:#ffdd00; }
+.save-panel { margin-top:16px; padding-top:14px; border-top:1px solid var(--im-border); display:grid; gap:10px; }
+.save-panel h3 { margin:0; font:700 1.3rem/1 "Cormorant Garamond",Georgia,serif; }
+.save-panel .location-description { margin:0; }
+.save-panel .btn { border:1px solid #00703c; box-shadow:inset 0 -2px 0 #002d18; }
 .status-line { margin:10px 0 0; min-height:1.2em; color:#00703c; font-size:.8rem; font-weight:600; }
 .status-line a { color:#1d70b8; font-weight:700; }
 .im-help { position:absolute; z-index:8; left:50%; top:50%; transform:translate(-50%,-50%); width:min(420px,calc(100% - 30px)); max-height:calc(100% - 30px); overflow:auto; padding:18px 20px; background:var(--im-bg); color:var(--im-fg); box-shadow:0 2px 12px rgba(0,0,0,.6); }
