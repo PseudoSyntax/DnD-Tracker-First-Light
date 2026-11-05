@@ -2,306 +2,77 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content="Interactive campaign map for the First Light adventure." />
     <title>First Light | Interactive Campaign Map</title>
-    <meta
-      name="description"
-      content="Interactive campaign map for the First Light adventure."
-    />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <style>
       * { box-sizing: border-box; }
-
-      :root {
-        --bg: #0b1114;
-        --panel: rgba(14, 18, 21, 0.86);
-        --panel-soft: rgba(255, 255, 255, 0.04);
-        --gold: #d9b56b;
-        --ink: #f4ead7;
-        --muted: #d5cdb8;
-        --edge: rgba(255,255,255,0.09);
-        --danger: #cf7c6f;
+      :root { --ink: #f4ead7; --muted: #d5cdb8; --gold: #d9b56b; --edge: rgba(255,255,255,.1); }
+      html { min-height: 100%; background: #0b1114; -webkit-text-size-adjust: 100%; }
+      body { margin: 0; min-height: 100vh; color: var(--ink); font-family: Inter, sans-serif; background: radial-gradient(circle at top, rgba(94,119,106,.16), transparent 32%), linear-gradient(135deg,#06090b,#0f1719 45%,#111b20); }
+      button, a { font: inherit; }
+      button:focus-visible, a:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+      .map-page { min-height: 100vh; background: rgba(10,15,16,.8); }
+      .topbar { display:flex; justify-content:space-between; align-items:center; gap:16px; padding:14px clamp(14px,3vw,28px); border-bottom:1px solid var(--edge); }
+      .back-link { color:var(--muted); text-decoration:none; letter-spacing:.1em; text-transform:uppercase; font-size:.75rem; font-weight:700; }
+      .header-title { margin:0; font:700 clamp(1.9rem,4vw,3.4rem)/1 "Cormorant Garamond",Georgia,serif; text-align:right; }
+      .map-layout { display:grid; grid-template-columns:minmax(0,1fr); gap:16px; padding:clamp(10px,2vw,20px); max-width:1600px; margin:auto; }
+      .map-layout.with-panel { grid-template-columns:minmax(0,2.2fr) minmax(260px,.8fr); }
+      .map-stage-wrap { position:relative; min-width:0; aspect-ratio:16/10; min-height:360px; max-height:76vh; border:1px solid var(--edge); background:#0d1113; overflow:hidden; }
+      .map-stage { position:relative; width:100%; height:100%; min-height:inherit; overflow:hidden; cursor:grab; user-select:none; -webkit-user-select:none; touch-action:none; }
+      .map-stage.dragging { cursor:grabbing; }
+      .map-viewport { position:absolute; inset:0; transform-origin:center; transition:transform .12s ease-out; }
+      .map-image { position:absolute; inset:0; width:100%; height:100%; object-fit:contain; background:#0d1113; filter:saturate(.85) contrast(1.08); pointer-events:none; }
+      .map-pin { position:absolute; z-index:2; width:30px; height:30px; padding:0; border:0; border-radius:50%; background:transparent; transform:translate(-50%,-50%); cursor:pointer; touch-action:none; }
+      .map-pin::before { content:""; position:absolute; inset:6px; border:2px solid rgba(255,255,255,.9); border-radius:50%; background:radial-gradient(circle,#f7e7b4,#d7b157 50%,#8d671e); box-shadow:0 0 0 5px rgba(215,177,87,.23),0 0 16px rgba(215,177,87,.55); }
+      .map-pin:hover::before, .map-pin.selected::before { box-shadow:0 0 0 7px rgba(215,177,87,.32),0 0 20px rgba(215,177,87,.7); }
+      .map-pin.selected { outline:2px solid rgba(255,255,255,.9); outline-offset:2px; }
+      .panel-toggle, .zoom-controls button { display:flex; align-items:center; justify-content:center; width:46px; height:46px; border:1px solid var(--edge); border-radius:3px; background:rgba(10,15,16,.9); color:var(--ink); cursor:pointer; }
+      .panel-toggle { position:absolute; z-index:5; top:12px; right:12px; font-size:1.15rem; }
+      .zoom-controls { position:absolute; z-index:4; right:12px; bottom:12px; display:flex; flex-direction:column; gap:8px; }
+      .zoom-controls button { font-size:1.5rem; line-height:1; }
+      .zoom-controls button:disabled { opacity:.45; }
+      .map-details { display:none; min-width:0; padding:18px; border:1px solid var(--edge); background:rgba(255,255,255,.025); }
+      .with-panel .map-details { display:block; }
+      .panel-kicker { margin:0 0 8px; color:var(--gold); text-transform:uppercase; letter-spacing:.15em; font-size:.7rem; font-weight:700; }
+      .chapter-summary h2 { margin:0 0 12px; font:700 clamp(2rem,3vw,3rem)/.95 "Cormorant Garamond",Georgia,serif; }
+      .chapter-summary p { color:var(--muted); line-height:1.65; margin:0 0 16px; }
+      .meta-list { display:flex; flex-wrap:wrap; gap:8px; }
+      .meta-list span { padding:8px 10px; border:1px solid var(--edge); color:var(--muted); font-size:.68rem; letter-spacing:.06em; text-transform:uppercase; overflow-wrap:anywhere; }
+      .detail-actions { display:flex; justify-content:space-between; align-items:center; gap:10px; margin:18px 0; padding-top:12px; border-top:1px solid var(--edge); }
+      .toggle-label { color:var(--muted); font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; }
+      .edit-toggle { min-width:64px; min-height:44px; padding:8px 12px; border:1px solid var(--edge); background:rgba(255,255,255,.04); color:var(--ink); cursor:pointer; }
+      .edit-toggle.is-on { background:rgba(217,181,107,.14); border-color:var(--gold); }
+      .location-description { margin:0; color:var(--muted); line-height:1.75; }
+      .location-description strong { color:var(--ink); }
+      @media (max-width:860px) {
+        .map-layout.with-panel { grid-template-columns:minmax(0,1fr); }
+        .map-stage-wrap { aspect-ratio:16/10; }
       }
-
-      html, body {
-        margin: 0;
-        min-height: 100%;
-        height: 100%;
-        background:
-          radial-gradient(circle at top, rgba(94, 119, 106, 0.16), transparent 32%),
-          linear-gradient(135deg, #06090b 0%, #0f1719 35%, #111b20 100%);
-        color: var(--ink);
-        font-family: "Inter", sans-serif;
+      @media (max-width:600px) {
+        .topbar { align-items:flex-start; flex-direction:column-reverse; gap:8px; padding:12px 14px; padding-top:max(12px,env(safe-area-inset-top)); }
+        .header-title { text-align:left; font-size:2.25rem; }
+        .back-link { display:inline-flex; align-items:center; min-height:44px; }
+        .map-layout { gap:10px; padding:10px; padding-bottom:max(10px,env(safe-area-inset-bottom)); }
+        .map-layout.with-panel { grid-template-columns:minmax(0,1fr); }
+        .map-stage-wrap { min-height:0; height:clamp(300px,52svh,560px); max-height:none; aspect-ratio:auto; }
+        .map-stage { min-height:0; }
+        .map-details { padding:16px; }
+        .chapter-summary h2 { font-size:2.2rem; }
+        .chapter-summary p { line-height:1.6; }
+        .panel-toggle { top:10px; right:10px; width:48px; height:48px; }
+        .zoom-controls { right:10px; bottom:10px; gap:8px; }
+        .zoom-controls button { width:48px; height:48px; }
       }
-
-      body {
-        display: flex;
-        justify-content: center;
-        align-items: stretch;
-        padding: 0;
+      @media (max-height:500px) and (orientation:landscape) {
+        .topbar { padding-block:8px; }
+        .map-layout { padding:8px; }
+        .map-stage-wrap { height:calc(100svh - 78px); min-height:220px; }
       }
-
-      .map-page {
-        width: 100vw;
-        max-width: none;
-        background: rgba(10, 15, 16, 0.8);
-        border: 1px solid var(--edge);
-        border-left: none;
-        border-right: none;
-      }
-
-      .topbar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 16px;
-        padding: 18px 22px;
-        border-bottom: 1px solid var(--edge);
-      }
-
-      .back-link {
-        color: var(--muted);
-        text-decoration: none;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-        font-size: 0.72rem;
-        font-weight: 700;
-      }
-
-      .header-title {
-        font-family: "Cormorant Garamond", Georgia, serif;
-        font-size: clamp(2.2rem, 4vw, 3.4rem);
-        margin: 0;
-      }
-
-      .map-layout {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr);
-        gap: 18px;
-        padding: 18px;
-      }
-
-      .map-layout.with-panel {
-        grid-template-columns: minmax(0, 2.2fr) minmax(260px, 0.8fr);
-      }
-
-      .map-stage-wrap {
-        position: relative;
-        border: 1px solid var(--edge);
-        background: #0d1113;
-        overflow: hidden;
-        min-height: 420px;
-        aspect-ratio: 16 / 9;
-        max-height: 76vh;
-      }
-
-      .map-stage {
-        position: relative;
-        width: 100%;
-        height: 100%;
-        min-height: 420px;
-        overflow: hidden;
-        cursor: grab;
-        user-select: none;
-      }
-
-      .map-stage.dragging {
-        cursor: grabbing;
-      }
-
-      .map-viewport {
-        position: absolute;
-        inset: 0;
-        transform-origin: center center;
-        transition: transform 0.12s ease-out;
-      }
-
-      .map-image {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: contain;
-        object-position: center center;
-        background: #0d1113;
-        filter: saturate(0.85) contrast(1.08);
-      }
-
-      .map-pin {
-        position: absolute;
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        padding: 0;
-        border: 2px solid rgba(255,255,255,0.8);
-        background: radial-gradient(circle, #f7e7b4 0%, #d7b157 45%, #8d671e 100%);
-        box-shadow: 0 0 0 7px rgba(215,177,87,0.2), 0 0 18px rgba(215,177,87,0.45);
-        transform: translate(-50%, -50%);
-        cursor: pointer;
-        transition: transform 120ms ease, box-shadow 120ms ease;
-        z-index: 2;
-      }
-
-      .map-pin:hover,
-      .map-pin.selected {
-        transform: translate(-50%, -50%) scale(1.16);
-        box-shadow: 0 0 0 8px rgba(215,177,87,0.26), 0 0 22px rgba(215,177,87,0.6);
-      }
-
-      .map-pin.selected {
-        outline: 2px solid rgba(255,255,255,0.9);
-      }
-
-      .panel-toggle {
-        position: absolute;
-        top: 14px;
-        right: 14px;
-        z-index: 5;
-        width: 42px;
-        height: 42px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border: 1px solid var(--edge);
-        background: rgba(10, 15, 16, 0.82);
-        color: var(--ink);
-        font-size: 1.2rem;
-        cursor: pointer;
-      }
-
-      .map-details {
-        display: none;
-        background: rgba(255,255,255,0.02);
-        border: 1px solid var(--edge);
-        padding: 18px;
-      }
-
-      .map-layout.with-panel .map-details {
-        display: block;
-      }
-
-      .zoom-controls {
-        position: absolute;
-        right: 14px;
-        bottom: 14px;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        z-index: 4;
-      }
-
-      .zoom-controls button {
-        width: 42px;
-        height: 42px;
-        font-size: 1.5rem;
-        line-height: 1;
-        padding: 0;
-        border: 1px solid var(--edge);
-        background: rgba(10, 15, 16, 0.84);
-        color: var(--ink);
-        cursor: pointer;
-      }
-
-      .zoom-controls button:disabled {
-        opacity: 0.45;
-        cursor: not-allowed;
-      }
-
-      .panel-kicker {
-        margin: 0 0 8px;
-        color: var(--gold);
-        text-transform: uppercase;
-        letter-spacing: 0.15em;
-        font-size: 0.66rem;
-        font-weight: 700;
-      }
-
-      .chapter-summary h2 {
-        margin: 0 0 12px;
-        font-family: "Cormorant Garamond", Georgia, serif;
-        font-size: clamp(2.2rem, 3vw, 3rem);
-        line-height: 0.9;
-      }
-
-      .chapter-summary p {
-        color: var(--muted);
-        line-height: 1.7;
-        margin: 0 0 18px;
-      }
-
-      .meta-list {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-      }
-
-      .meta-list span {
-        display: inline-block;
-        border: 1px solid rgba(255,255,255,0.08);
-        background: rgba(255,255,255,0.025);
-        padding: 8px 10px;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        font-size: 0.68rem;
-        color: var(--muted);
-      }
-
-      .detail-actions {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 10px;
-        margin: 18px 0;
-        padding-top: 8px;
-        border-top: 1px solid var(--edge);
-      }
-
-      .toggle-label {
-        color: var(--muted);
-        font-size: 0.72rem;
-        letter-spacing: 0.12em;
-        text-transform: uppercase;
-      }
-
-      .edit-toggle {
-        border: 1px solid var(--edge);
-        background: rgba(255,255,255,0.03);
-        color: var(--ink);
-        padding: 8px 12px;
-        cursor: pointer;
-      }
-
-      .edit-toggle.is-on {
-        background: rgba(217,181,107,0.12);
-        border-color: rgba(217,181,107,0.7);
-      }
-
-      .location-description {
-        line-height: 1.8;
-        color: var(--muted);
-        margin: 0;
-      }
-
-      .location-description strong {
-        color: var(--ink);
-      }
-
-      @media (max-width: 860px) {
-        .map-layout.with-panel {
-          grid-template-columns: 1fr;
-        }
-
-        .map-stage,
-        .map-stage-wrap {
-          min-height: 360px;
-          aspect-ratio: 16 / 10;
-        }
-      }
+      @media (prefers-reduced-motion:reduce) { *,*::before,*::after { scroll-behavior:auto!important; transition-duration:.01ms!important; } }
     </style>
   </head>
   <body>
@@ -310,70 +81,47 @@
         <a class="back-link" href="index.html">← Return to Journal</a>
         <h1 class="header-title">Campaign Atlas</h1>
       </header>
-
       <main class="map-layout with-panel" id="mapLayout">
         <div class="map-stage-wrap">
           <button id="panelToggleBtn" class="panel-toggle" type="button" aria-label="Toggle map details" aria-expanded="true">✎</button>
-          <div class="map-stage" id="mapStage" aria-label="Campaign map viewport">
-            <div class="map-viewport" id="mapViewport">
-              <img class="map-image" id="mapImage" src="image-1.png" alt="Interactive campaign map" />
-            </div>
+          <div class="map-stage" id="mapStage" role="application" aria-label="Interactive campaign map. Drag to pan, use the plus and minus buttons to zoom.">
+            <div class="map-viewport" id="mapViewport"><img class="map-image" id="mapImage" src="image-1.png" alt="Campaign map" draggable="false" /></div>
             <div class="zoom-controls" aria-label="Map zoom controls">
               <button id="zoomInBtn" type="button" aria-label="Zoom in">+</button>
               <button id="zoomOutBtn" type="button" aria-label="Zoom out">−</button>
             </div>
           </div>
         </div>
-
         <aside class="map-details" id="mapDetails" aria-live="polite">
           <p class="panel-kicker">Waypoint</p>
           <div class="chapter-summary">
             <h2 id="map-title">The Known World</h2>
-            <p id="map-summary">Across the broken frontier of the Old Kingdom...</p>
-            <div class="meta-list">
-              <span id="map-location">The First Light Campaign</span>
-              <span id="map-session">World Overview</span>
-            </div>
+            <p id="map-summary"></p>
+            <div class="meta-list"><span id="map-location"></span><span id="map-session"></span></div>
           </div>
-
-          <div class="detail-actions">
-            <span class="toggle-label">Edit mode</span>
-            <button id="editModeBtn" class="edit-toggle" type="button" aria-pressed="false">Off</button>
-          </div>
-
-          <p class="location-description" id="locationDescription">
-            <strong>World overview:</strong> The campaign unfolds across a fractured frontier of ancient kingdoms, haunted wilds, and forgotten shrines.
-          </p>
+          <div class="detail-actions"><span class="toggle-label">Edit mode</span><button id="editModeBtn" class="edit-toggle" type="button" aria-pressed="false">Off</button></div>
+          <p class="location-description" id="locationDescription"></p>
         </aside>
       </main>
     </div>
-
     <script>
       const STORAGE_KEY = 'firstLightCampaignMapData';
       const MAP_EDGE_PADDING = 8;
-
       const WORLD_OVERVIEW = {
-        title: 'The Known World',
-        location: 'The First Light Campaign',
-        session: 'World Overview',
+        title: 'The Known World', location: 'The First Light Campaign', session: 'World Overview',
         summary: 'Across the broken frontier of the Old Kingdom, rival realms, haunted woods, and forgotten shrines shape the fate of the campaign. Some roads are safe, most are not, and every travel-worn path carries a story still waiting to be told.',
-        description: 'The campaign unfolds across a fractured frontier of ancient kingdoms, haunted wilds, and forgotten shrines. The world is full of broken oaths, old magic, and danger that waits just beyond the nearest road.',
-        image: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1200&q=80',
-        x: 50,
-        y: 50
+        description: 'The campaign unfolds across a fractured frontier of ancient kingdoms, haunted wilds, and forgotten shrines. The world is full of broken oaths, old magic, and danger that waits just beyond the nearest road.', x: 50, y: 50
       };
-
       const DEFAULT_POINTS = [
-        { title: 'The Whispering Forest', location: 'Forest of Hollow Pine', session: 'Session 01', summary: 'The party enters the Blackbriar frontier, where a forgotten lantern is said to have warmed the land before the first winter of ruin. Old roots sway like whispers, and every trail seems to remember a story no one told aloud.', description: 'A moonlit woodland of ash-pale trees and whispering roots where the campaign begins under a lantern omen and a broken frontier road.', image: 'https://images.unsplash.com/photo-1448375240586-882707db888b?auto=format&fit=crop&w=1200&q=80', x: 18, y: 30 },
-        { title: 'Ashes of the Moor', location: 'The Emberfen', session: 'Session 02', summary: 'A ruined keep rises from a field of smoldering heather, where the cult’s first ash-mark is found beneath a collapsed bell tower. The air tastes of smoke and prophecy.', description: 'A burned moor of cracked stone, collapsing towers, and ash-marked cult sigils where the old kingdom still breathes through smoke and prayer.', image: 'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?auto=format&fit=crop&w=1200&q=80', x: 32, y: 58 },
-        { title: 'The Shattered Tide', location: 'Nightmere Coast', session: 'Session 03', summary: 'A drowned chapel and black tide pull the party toward an enemy they cannot name, where sea sigils pulse beneath the moon, and the dead follow the sound of bells across the sand.', description: 'A moonlit coast haunted by drowned shrines, salt-stained ruins, and a black tide that carries the voices of the drowned.', image: 'https://images.unsplash.com/photo-1500375592092-40eb2168fd21?auto=format&fit=crop&w=1200&q=80', x: 62, y: 72 },
-        { title: 'The Iron Ridge', location: 'Stormglass Peaks', session: 'Session 04', summary: 'The mountains answer with thunder and glacier-cold silence. Within the ruined fortress, a crown of stormsteel is hidden behind a door that only opens to a vow.', description: 'A thunder-ridden mountain pass where broken fortresses cling to glacier cliffs and stormsteel relics wait beneath frozen silence.', image: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=1200&q=80', x: 72, y: 28 },
-        { title: 'The Glass Marsh', location: 'Mire of Sable Reed', session: 'Session 05', summary: 'The marsh gleams like broken glass beneath the twilight, where reeds whisper in a hundred old dialects and every lantern-light marks a forbidden oath.', description: 'A mirrored swamp of translucent water, whispering reeds, and old oaths preserved in lightless pools that reflect the sky like shards of glass.', image: 'https://images.unsplash.com/photo-1473448912268-2022ce9509d8?auto=format&fit=crop&w=1200&q=80', x: 48, y: 46 },
-        { title: 'The Vault of Echoes', location: 'Lair of Silent Bells', session: 'Session 06', summary: 'Beneath the ruins of a collapsed citadel, a chamber of listening stone stores every memory in a different bell tone. The cult’s plan grows more dreadful with each answering chime.', description: 'A buried chamber beneath ruined stone where listening bells hold memory itself, and every passage rings with a forgotten voice.', image: 'https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=1200&q=80', x: 56, y: 18 },
-        { title: 'The Hollow Crown', location: 'Fane of Last Winter', session: 'Session 07', summary: 'A dead throne room opens beneath a frozen shrine, revealing the final living remnant of a kingdom that chose ritual over mercy. The party must decide whether to break or wear the crown.', description: 'A frozen shrine and throne room at the edge of the world where kings once chose ritual over mercy and still linger in frost.', image: 'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=900&q=80', x: 24, y: 14 },
-        { title: 'First Dawn', location: 'Skyreach Observatory', session: 'Session 08', summary: 'At the peak of the world, the signal of the first dawn waits under a temple of stars. The final cost of the ritual is no longer hidden; it is carried in the hands of the heroes who chose to answer it.', description: 'The highest observatory in the world, where a star-temple waits above the clouds and the first true dawn is still being chosen by the heroes below.', image: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1200&q=80', x: 82, y: 16 }
+        { title:'The Whispering Forest', location:'Forest of Hollow Pine', session:'Session 01', summary:'The party enters the Blackbriar frontier, where a forgotten lantern is said to have warmed the land before the first winter of ruin.', description:'A moonlit woodland of ash-pale trees and whispering roots where the campaign begins beneath a lantern omen and a broken frontier road.', x:18, y:30 },
+        { title:'Ashes of the Moor', location:'The Emberfen', session:'Session 02', summary:'A ruined keep rises from a field of smoldering heather, where the cult’s first ash-mark is found beneath a collapsed bell tower.', description:'A burned moor of cracked stone, collapsing towers, and ash-marked cult sigils.', x:32, y:58 },
+        { title:'The Shattered Tide', location:'Nightmere Coast', session:'Session 03', summary:'A drowned chapel and black tide pull the party toward an enemy they cannot name.', description:'A moonlit coast haunted by drowned shrines and a black tide.', x:62, y:72 },
+        { title:'The Iron Ridge', location:'Stormglass Peaks', session:'Session 04', summary:'The mountains answer with thunder and glacier-cold silence. A stormsteel crown lies hidden in a ruined fortress.', description:'A thunder-ridden mountain pass where broken fortresses cling to glacier cliffs.', x:72, y:28 },
+        { title:'The Glass Marsh', location:'Mire of Sable Reed', session:'Session 05', summary:'The marsh gleams like broken glass beneath the twilight, where reeds whisper in old dialects.', description:'A mirrored swamp of translucent water, whispering reeds, and old oaths.', x:48, y:46 },
+        { title:'The Vault of Echoes', location:'Lair of Silent Bells', session:'Session 06', summary:'Beneath a collapsed citadel, listening stone stores every memory in a different bell tone.', description:'A buried chamber beneath ruined stone where listening bells hold memories.', x:56, y:18 },
+        { title:'The Hollow Crown', location:'Fane of Last Winter', session:'Session 07', summary:'A dead throne room opens beneath a frozen shrine, revealing the last remnant of a kingdom.', description:'A frozen shrine and throne room at the edge of the world.', x:24, y:14 },
+        { title:'First Dawn', location:'Skyreach Observatory', session:'Session 08', summary:'At the peak of the world, the signal of the first dawn waits beneath a temple of stars.', description:'The highest observatory in the world, where a star-temple waits above the clouds.', x:82, y:16 }
       ];
-
       const mapLayout = document.getElementById('mapLayout');
       const mapStage = document.getElementById('mapStage');
       const mapViewport = document.getElementById('mapViewport');
@@ -387,251 +135,59 @@
       const panelToggleBtn = document.getElementById('panelToggleBtn');
       const zoomInBtn = document.getElementById('zoomInBtn');
       const zoomOutBtn = document.getElementById('zoomOutBtn');
-
-      let selectedIndex = null;
-      let dragIndex = null;
-      let dragPan = null;
-      let zoom = 1;
-      let panX = 0;
-      let panY = 0;
-      let editMode = false;
-
-      const MIN_ZOOM = 0.6;
-      const MAX_ZOOM = 2.2;
-      const ZOOM_STEP = 0.2;
-
-      function clamp(value, min, max) {
-        return Math.min(Math.max(value, min), max);
-      }
-
-      function normalizePointValue(value, fallback = 50) {
-        const number = Number(value);
-        if (!Number.isFinite(number)) return fallback;
-        return clamp(number, MAP_EDGE_PADDING, 100 - MAP_EDGE_PADDING);
-      }
-
+      let selectedIndex = null, dragIndex = null, dragPan = null, zoom = 1, panX = 0, panY = 0, editMode = false;
+      const MIN_ZOOM = 0.6, MAX_ZOOM = 2.2, ZOOM_STEP = 0.2;
+      const clamp = (value,min,max) => Math.min(Math.max(value,min),max);
+      function normalizePointValue(value, fallback=50) { const number=Number(value); return Number.isFinite(number) ? clamp(number,MAP_EDGE_PADDING,100-MAP_EDGE_PADDING) : fallback; }
       function getPanLimits() {
-        const stageWidth = mapStage.clientWidth;
-        const stageHeight = mapStage.clientHeight;
-        const imageWidth = mapImage.naturalWidth || stageWidth;
-        const imageHeight = mapImage.naturalHeight || stageHeight;
-        const scaledWidth = imageWidth * zoom;
-        const scaledHeight = imageHeight * zoom;
-        const maxX = Math.max(0, (scaledWidth - stageWidth) / 2);
-        const maxY = Math.max(0, (scaledHeight - stageHeight) / 2);
-        return { maxX, maxY };
+        const w=mapStage.clientWidth, h=mapStage.clientHeight;
+        const iw=mapImage.naturalWidth || w, ih=mapImage.naturalHeight || h;
+        return { maxX:Math.max(0,(iw*zoom-w)/2), maxY:Math.max(0,(ih*zoom-h)/2) };
       }
-
-      function syncPanPosition() {
-        const { maxX, maxY } = getPanLimits();
-        panX = clamp(panX, -maxX, maxX);
-        panY = clamp(panY, -maxY, maxY);
-        mapViewport.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
-      }
-
-      function updateZoomButtons() {
-        zoomInBtn.disabled = zoom >= MAX_ZOOM;
-        zoomOutBtn.disabled = zoom <= MIN_ZOOM;
-      }
-
-      function recenterMap() {
-        zoom = 1;
-        panX = 0;
-        panY = 0;
-        syncPanPosition();
-        updateZoomButtons();
-      }
-
-      function setPanelVisible(nextState) {
-        mapLayout.classList.toggle('with-panel', nextState);
-        panelToggleBtn.setAttribute('aria-expanded', String(nextState));
-        panelToggleBtn.title = nextState ? 'Hide map details' : 'Show map details';
-      }
-
-      function setEditMode(nextState) {
-        editMode = Boolean(nextState);
-        editModeBtn.textContent = editMode ? 'On' : 'Off';
-        editModeBtn.classList.toggle('is-on', editMode);
-        editModeBtn.setAttribute('aria-pressed', String(editMode));
-        panelToggleBtn.textContent = editMode ? '✎' : '✎';
-        setPanelVisible(!editMode);
-      }
-
+      function syncPanPosition() { const {maxX,maxY}=getPanLimits(); panX=clamp(panX,-maxX,maxX); panY=clamp(panY,-maxY,maxY); mapViewport.style.transform=`translate(${panX}px,${panY}px) scale(${zoom})`; }
+      function updateZoomButtons() { zoomInBtn.disabled=zoom>=MAX_ZOOM; zoomOutBtn.disabled=zoom<=MIN_ZOOM; }
+      function setPanelVisible(visible) { mapLayout.classList.toggle('with-panel',visible); panelToggleBtn.setAttribute('aria-expanded',String(visible)); panelToggleBtn.title=visible?'Hide map details':'Show map details'; }
+      function setEditMode(enabled) { editMode=Boolean(enabled); editModeBtn.textContent=editMode?'On':'Off'; editModeBtn.classList.toggle('is-on',editMode); editModeBtn.setAttribute('aria-pressed',String(editMode)); setPanelVisible(!editMode); }
       function updateDetailPanel() {
-        const point = selectedIndex !== null && points[selectedIndex] ? points[selectedIndex] : null;
-
-        if (!point) {
-          mapTitle.textContent = WORLD_OVERVIEW.title;
-          mapSummary.textContent = WORLD_OVERVIEW.summary;
-          mapLocation.textContent = WORLD_OVERVIEW.location;
-          mapSession.textContent = WORLD_OVERVIEW.session;
-          locationDescription.innerHTML = `<strong>World overview:</strong> ${WORLD_OVERVIEW.description}`;
-          return;
-        }
-
-        mapTitle.textContent = point.title;
-        mapSummary.textContent = point.summary;
-        mapLocation.textContent = point.location;
-        mapSession.textContent = point.session;
-        locationDescription.innerHTML = `<strong>${point.location}:</strong> ${point.description || point.summary}`;
+        const point=selectedIndex!==null ? points[selectedIndex] : null;
+        const detail=point || WORLD_OVERVIEW;
+        mapTitle.textContent=detail.title; mapSummary.textContent=detail.summary; mapLocation.textContent=detail.location; mapSession.textContent=detail.session;
+        const strong=document.createElement('strong'); strong.textContent=`${point ? point.location : 'World overview'}: `;
+        locationDescription.replaceChildren(strong,document.createTextNode(point ? (point.description || point.summary) : WORLD_OVERVIEW.description));
       }
-
       function loadPoints() {
-        try {
-          const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
-          if (Array.isArray(saved) && saved.length > 0) {
-            return saved.map((point) => ({
-              ...point,
-              x: normalizePointValue(point.x, 50),
-              y: normalizePointValue(point.y, 50),
-              description: point.description || point.summary || WORLD_OVERVIEW.description,
-            }));
-          }
-        } catch (error) {
-          console.warn('Unable to load saved map points.', error);
-        }
+        try { const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)); if(Array.isArray(saved)&&saved.length) return saved.map(p=>({...p,x:normalizePointValue(p.x),y:normalizePointValue(p.y),description:p.description||p.summary||''})); }
+        catch(error) { console.warn('Unable to load saved map points.',error); }
         return DEFAULT_POINTS;
       }
-
-      function persistPoints() {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(points));
-      }
-
+      function persistPoints() { try { localStorage.setItem(STORAGE_KEY,JSON.stringify(points)); } catch(error) { console.warn('Unable to save map points.',error); } }
       function renderPins() {
-        const existingPins = mapViewport.querySelectorAll('.map-pin');
-        existingPins.forEach((pin) => pin.remove());
-
-        points.forEach((point, index) => {
-          const pin = document.createElement('button');
-          pin.type = 'button';
-          pin.className = 'map-pin' + (index === selectedIndex ? ' selected' : '');
-          pin.style.left = `${point.x}%`;
-          pin.style.top = `${point.y}%`;
-          pin.title = point.title;
-          pin.setAttribute('aria-label', `${point.title} marker`);
-
-          pin.addEventListener('click', (event) => {
-            event.stopPropagation();
-            selectedIndex = index;
-            renderPins();
-            updateDetailPanel();
-          });
-
-          pin.addEventListener('pointerdown', (event) => {
-            if (event.button !== 0) return;
-            event.preventDefault();
-
-            if (editMode) {
-              dragIndex = index;
-              selectedIndex = index;
-              renderPins();
-              updateDetailPanel();
-              return;
-            }
-
-            selectedIndex = index;
-            renderPins();
-            updateDetailPanel();
-          });
-
+        mapViewport.querySelectorAll('.map-pin').forEach(pin=>pin.remove());
+        points.forEach((point,index)=>{
+          const pin=document.createElement('button'); pin.type='button'; pin.className='map-pin'+(index===selectedIndex?' selected':''); pin.style.left=`${point.x}%`; pin.style.top=`${point.y}%`; pin.title=point.title; pin.setAttribute('aria-label',`${point.title} marker`);
+          pin.addEventListener('click',event=>{ event.stopPropagation(); selectedIndex=index; renderPins(); updateDetailPanel(); });
+          pin.addEventListener('pointerdown',event=>{ event.stopPropagation(); if(editMode){ event.preventDefault(); dragIndex=index; selectedIndex=index; pin.setPointerCapture?.(event.pointerId); updateDetailPanel(); } });
           mapViewport.appendChild(pin);
         });
       }
-
-      function initializeMap() {
-        if (mapImage.complete) {
-          syncPanPosition();
-        } else {
-          mapImage.addEventListener('load', syncPanPosition, { once: true });
-        }
-
-        setEditMode(false);
-        renderPins();
-        updateDetailPanel();
-        updateZoomButtons();
-      }
-
-      function zoomMap(direction) {
-        const nextZoom = clamp(zoom + direction * ZOOM_STEP, MIN_ZOOM, MAX_ZOOM);
-        if (nextZoom === zoom) return;
-        zoom = nextZoom;
-        syncPanPosition();
-        updateZoomButtons();
-      }
-
-      mapStage.addEventListener('click', (event) => {
-        if (event.target.closest('.map-pin')) return;
-        if (event.target.closest('.panel-toggle')) return;
-        if (event.target.closest('#zoomInBtn')) return;
-        if (event.target.closest('#zoomOutBtn')) return;
-        if (event.target.closest('.map-image') || event.target === mapStage) {
-          selectedIndex = null;
-          renderPins();
-          updateDetailPanel();
-        }
+      function zoomMap(direction) { const next=clamp(zoom+direction*ZOOM_STEP,MIN_ZOOM,MAX_ZOOM); if(next===zoom)return; zoom=next; syncPanPosition(); updateZoomButtons(); }
+      function recenterMap() { zoom=1; panX=0; panY=0; syncPanPosition(); updateZoomButtons(); }
+      mapStage.addEventListener('pointerdown',event=>{ if(event.target.closest('.map-pin,.panel-toggle,.zoom-controls'))return; dragPan={x:event.clientX,y:event.clientY,pointerId:event.pointerId}; mapStage.setPointerCapture?.(event.pointerId); mapStage.classList.add('dragging'); });
+      mapStage.addEventListener('pointermove',event=>{
+        if(dragIndex!==null&&editMode){ const rect=mapStage.getBoundingClientRect(), p=points[dragIndex]; if(!p)return; p.x=normalizePointValue(((event.clientX-rect.left)/rect.width)*100); p.y=normalizePointValue(((event.clientY-rect.top)/rect.height)*100); selectedIndex=dragIndex; persistPoints(); renderPins(); updateDetailPanel(); return; }
+        if(dragPan){ const dx=event.clientX-dragPan.x,dy=event.clientY-dragPan.y; dragPan.x=event.clientX; dragPan.y=event.clientY; panX+=dx/zoom; panY+=dy/zoom; syncPanPosition(); }
       });
-
-      mapStage.addEventListener('pointerdown', (event) => {
-        if (event.target.closest('.map-pin')) return;
-        if (event.button !== 0) return;
-        dragPan = { x: event.clientX, y: event.clientY };
-        mapStage.classList.add('dragging');
-      });
-
-      document.addEventListener('pointermove', (event) => {
-        if (dragIndex !== null && editMode) {
-          const rect = mapStage.getBoundingClientRect();
-          const x = ((event.clientX - rect.left) / rect.width) * 100;
-          const y = ((event.clientY - rect.top) / rect.height) * 100;
-          const point = points[dragIndex];
-          if (!point) return;
-
-          point.x = normalizePointValue(x, 50);
-          point.y = normalizePointValue(y, 50);
-          selectedIndex = dragIndex;
-          persistPoints();
-          renderPins();
-          updateDetailPanel();
-        }
-
-        if (dragPan) {
-          const dx = event.clientX - dragPan.x;
-          const dy = event.clientY - dragPan.y;
-          dragPan.x = event.clientX;
-          dragPan.y = event.clientY;
-          panX += dx / zoom;
-          panY += dy / zoom;
-          syncPanPosition();
-        }
-      });
-
-      document.addEventListener('pointerup', () => {
-        if (dragIndex !== null) {
-          dragIndex = null;
-        }
-
-        if (dragPan) {
-          dragPan = null;
-          mapStage.classList.remove('dragging');
-          recenterMap();
-        }
-      });
-
-      panelToggleBtn.addEventListener('click', (event) => {
-        event.stopPropagation();
-        setEditMode(!editMode);
-      });
-
-      editModeBtn.addEventListener('click', (event) => {
-        event.stopPropagation();
-        setEditMode(!editMode);
-      });
-
-      zoomInBtn.addEventListener('click', () => zoomMap(1));
-      zoomOutBtn.addEventListener('click', () => zoomMap(-1));
-
-      const points = loadPoints();
-      initializeMap();
+      function finishPointer(){ dragIndex=null; if(dragPan){ dragPan=null; mapStage.classList.remove('dragging'); } }
+      mapStage.addEventListener('pointerup',finishPointer); mapStage.addEventListener('pointercancel',finishPointer); mapStage.addEventListener('lostpointercapture',finishPointer);
+      mapStage.addEventListener('click',event=>{ if(event.target.closest('.map-pin,.panel-toggle,.zoom-controls'))return; if(event.target===mapStage||event.target===mapImage){ selectedIndex=null; renderPins(); updateDetailPanel(); } });
+      panelToggleBtn.addEventListener('click',event=>{ event.stopPropagation(); setPanelVisible(!mapLayout.classList.contains('with-panel')); });
+      editModeBtn.addEventListener('click',event=>{ event.stopPropagation(); setEditMode(!editMode); });
+      zoomInBtn.addEventListener('click',()=>zoomMap(1)); zoomOutBtn.addEventListener('click',()=>zoomMap(-1));
+      const points=loadPoints();
+      mapImage.addEventListener('load',syncPanPosition,{once:true});
+      window.addEventListener('resize',syncPanPosition);
+      setPanelVisible(true); setEditMode(false); renderPins(); updateDetailPanel(); updateZoomButtons();
+      if(mapImage.complete) syncPanPosition();
     </script>
   </body>
 </html>
