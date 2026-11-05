@@ -2,37 +2,43 @@
 
 [Open DnD Tracker: First Light](https://pseudosyntax.github.io/DnD-Tracker-First-Light/)
 
-## Secure map editing and repo access
+## How it works
 
-This project can be edited safely without exposing a GitHub token in the browser. The recommended setup is to manage access in GitHub and use the included workflow to validate and publish map updates.
+`campaign-data.json` is the single source of truth. Both the journal (`index.html`) and the interactive map (`map.html`) load it at runtime, so edits to the file update both pages.
 
-### Recommended workflow
+Because the pages fetch the JSON, serve the folder instead of opening files directly:
 
-- Trusted users get Write access to the repository.
-- The `main` branch is protected.
-- Verified changes are published through the Actions workflow.
-- The browser still lets you edit and preview the map locally, but final publishing happens in GitHub.
+```sh
+python3 -m http.server 8000   # then open http://localhost:8000
+```
 
-### Repository setup instructions
+### Data format
 
-1. Open the repository.
-2. Go to Settings > Collaborators and teams.
-3. Add trusted editors with Write access.
-4. Go to Settings > Branches.
-5. Add a protection rule for `main`.
-6. Enable the protections you want, such as required pull requests.
-7. Go to Settings > Actions > General.
-8. Set Workflow permissions to Read and write permissions.
-9. If you need workflow-based publishing from a maintainer account, add a PAT secret named `GH_PAT`.
+- `currentChapter` – id of the chapter the party is on (earlier chapters show as completed).
+- `world` – overview text shown on the map when nothing is selected.
+- `party` – optional list of `{ "name", "role", "note" }`; the Party panel appears when it has entries.
+- `chapters[]` – `id`, `number`, `title`, `location`, `session`, `summary`, `snippet`, `description`, `image`, map position `x`/`y` (percent of the map image), `quests` (`{ "text", "done" }`) and `npcs` (`{ "name", "note" }`).
 
-### Local editing workflow
+Validate changes with `node scripts/validate-data.mjs`. The *Validate campaign data* workflow runs the same check on pushes and pull requests.
 
-1. Open `map.html` in a browser.
-2. Adjust map points and metadata.
-3. Use Save Browser to keep the edits locally.
-4. Open the updated `campaign-data.json` file in the repo.
-5. Commit the change or trigger the publish workflow.
+## Interactive map
 
-### More detail
+- Drag to pan; scroll, pinch, or use the **+ / −** buttons to zoom (zoom follows the cursor). **⌂** resets the view.
+- With the map focused: arrow keys pan, `+`/`-` zoom, `0` resets, `Esc` deselects.
+- Markers are numbered by chapter, show the current chapter pulsing, and are joined by a toggleable route line and labels.
+- Select a marker (or use Prev/Next) to read its details; links open the matching journal chapter. `map.html#chapter-id` deep-links to a marker.
 
-See `docs/map-editor-access.md` for the full permission and publishing guide.
+### Editing the map
+
+1. Switch **Edit mode** on.
+2. Drag markers (or select one and use the arrow keys, `Shift` for bigger steps) and edit its text fields.
+3. Edits are saved only in your browser's local storage. **Export JSON** downloads a full `campaign-data.json`.
+4. Replace `campaign-data.json` in the repo and commit it (via pull request if `main` is protected). **Import JSON** loads a file back as local edits; **Discard local edits** reverts to the published data.
+
+## Journal extras
+
+Each chapter lists objectives you can tick off and a private notes box. Both are stored in your browser only and are not published.
+
+## Repository access
+
+See `docs/map-editor-access.md` for permissions and the publishing workflow.

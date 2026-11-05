@@ -15,6 +15,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
+    <link rel="icon" href="data:," />
   </head>
   <body>
     <div class="campaign-shell">
@@ -25,7 +26,7 @@
         </div>
         <div class="campaign-meta">
           <span>Part I</span>
-          <span>8 Chapters</span>
+          <span id="chapter-count">Chapters</span>
         </div>
       </header>
 
@@ -35,13 +36,41 @@
             <div class="hero-overlay"></div>
             <div class="hero-content">
               <p class="chapter-kicker">Current Chapter</p>
-              <h2 id="hero-title">The Whispering Forest</h2>
+              <h2 id="hero-title">Loading…</h2>
               <p id="hero-summary"></p>
               <div class="hero-meta">
-                <span id="hero-location">Forest of Hollow Pine</span>
-                <span id="hero-session">Session 01</span>
+                <span id="hero-location"></span>
+                <span id="hero-session"></span>
+                <span id="hero-status"></span>
+              </div>
+              <div class="hero-actions">
+                <button id="prev-chapter" class="action-btn" type="button">← Previous</button>
+                <button id="next-chapter" class="action-btn" type="button">Next →</button>
+                <a id="hero-map-link" class="action-btn" href="map.html">View on map</a>
               </div>
             </div>
+          </section>
+
+          <section class="journal-panel" id="journal-panel" aria-label="Chapter journal" hidden>
+            <div class="journal-grid">
+              <div>
+                <p class="tag">Objectives</p>
+                <ul id="quest-list" class="quest-list"></ul>
+              </div>
+              <div>
+                <p class="tag">People of Note</p>
+                <ul id="npc-list" class="npc-list"></ul>
+              </div>
+            </div>
+            <div class="notes-wrap">
+              <label class="tag" for="chapter-notes">My notes (saved in this browser only)</label>
+              <textarea id="chapter-notes" rows="4" placeholder="Jot down clues, names, and theories…"></textarea>
+            </div>
+          </section>
+
+          <section class="party-panel" id="party-panel" aria-label="Party" hidden>
+            <p class="tag">The Party</p>
+            <ul id="party-list" class="party-list"></ul>
           </section>
 
           <section class="map-panel" aria-label="Campaign map">
@@ -50,7 +79,7 @@
               <h3>Campaign Map</h3>
             </div>
             <a href="map.html" class="map-link" aria-label="Open interactive campaign map">
-              <img src="image-1.png" alt="Campaign map of the first light adventure" />
+              <img src="image-1.webp" alt="Campaign map of the first light adventure" width="2048" height="1536" loading="lazy" decoding="async" />
             </a>
           </section>
         </div>
@@ -60,11 +89,13 @@
             <p class="tag">Trail Map</p>
             <h3>Chapters</h3>
           </div>
+          <div id="load-error" class="load-error" role="alert" hidden></div>
           <div id="chapter-list" class="chapter-list"></div>
         </aside>
       </main>
     </div>
 
+    <script src="data.js"></script>
     <script src="script.js"></script>
   </body>
 </html>

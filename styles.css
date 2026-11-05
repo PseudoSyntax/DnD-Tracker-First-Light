@@ -354,6 +354,112 @@ a:focus-visible {
   margin-top: 4px;
 }
 
+[hidden] {
+  display: none !important;
+}
+
+.hero-actions {
+  margin-top: 16px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 8px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(6, 9, 11, 0.62);
+  color: var(--ink);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.action-btn:hover:not(:disabled) {
+  border-color: var(--gold);
+}
+
+.action-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.journal-panel,
+.party-panel {
+  background: rgba(14, 19, 22, 0.78);
+  border: 1px solid var(--edge);
+  padding: 18px;
+}
+
+.journal-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 18px;
+}
+
+.quest-list,
+.npc-list,
+.party-list {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.quest-item {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  cursor: pointer;
+}
+
+.quest-item input {
+  margin-top: 4px;
+  accent-color: var(--gold);
+}
+
+.quest-item.done span {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+.empty {
+  opacity: 0.6;
+  font-style: italic;
+}
+
+.notes-wrap {
+  margin-top: 18px;
+  display: grid;
+  gap: 8px;
+}
+
+.notes-wrap textarea {
+  width: 100%;
+  resize: vertical;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--edge);
+  color: var(--ink);
+  font: inherit;
+}
+
+.load-error {
+  padding: 12px;
+  border: 1px solid rgba(215, 120, 100, 0.6);
+  color: #f2c4b8;
+  line-height: 1.5;
+  font-size: 0.85rem;
+}
+
 @media (max-width: 900px) {
   .chapter-layout {
     grid-template-columns: minmax(0, 1fr);
