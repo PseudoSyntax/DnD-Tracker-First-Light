@@ -1,6 +1,10 @@
 (function () {
   const $ = (id) => document.getElementById(id);
-  const mapLayout = $("mapLayout");
+  const mapApp = $("mapApp");
+  const mapDetails = $("mapDetails");
+  const helpPanel = $("helpPanel");
+  const helpBtn = $("helpBtn");
+  const fullscreenBtn = $("fullscreenBtn");
   const mapStage = $("mapStage");
   const mapViewport = $("mapViewport");
   const mapImage = $("mapImage");
@@ -13,6 +17,8 @@
   const viewPanel = $("viewPanel");
   const editorForm = $("editorForm");
   const editTools = $("editTools");
+  const savePanel = $("savePanel");
+  const saveBtn = $("saveBtn");
   const locationDescription = $("locationDescription");
   const statusLine = $("statusLine");
   const journalLink = $("journalLink");
@@ -24,6 +30,7 @@
   const zoomOutBtn = $("zoomOutBtn");
   const importFile = $("importFile");
 
+  const URL_PREFIX = "map:";
   const MIN_ZOOM = 1;
   const MAX_ZOOM = 5;
   const ZOOM_STEP = 1.35;
@@ -46,8 +53,19 @@
 
   const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
   const round1 = (value) => Math.round(value * 10) / 10;
+  const round2 = (value) => Math.round(value * 100) / 100;
+
+  function setStatusLink(message, url) {
+    const link = document.createElement("a");
+    link.href = url;
+    link.target = "_blank";
+    link.rel = "noopener";
+    link.textContent = "View pull request";
+    statusLine.replaceChildren(document.createTextNode(`${message} `), link);
+  }
 
   function setStatus(message) {
+    queueMicrotask(() => saveBtn.classList.toggle("has-edits", FirstLight.hasEdits()));
     statusLine.textContent = message || (FirstLight.hasEdits() ? "Local edits active in this browser." : "");
   }
 
@@ -70,6 +88,41 @@
     applyTransform();
   }
 
+  /* Keeps ?map:center=x,y&map:zoom=z (and #chapter-id) in the address bar so views can be shared. */
+  let urlTimer = null;
+  function syncUrl() {
+    clearTimeout(urlTimer);
+    urlTimer = setTimeout(() => {
+      if (!campaign || !size.w) return;
+      const params = new URLSearchParams(location.search);
+      const cx = 50 - (panX / (size.w * zoom)) * 100;
+      const cy = 50 - (panY / (size.h * zoom)) * 100;
+      if (zoom <= MIN_ZOOM + 0.001 && Math.abs(panX) < 1 && Math.abs(panY) < 1) {
+        params.delete(`${URL_PREFIX}center`);
+        params.delete(`${URL_PREFIX}zoom`);
+      } else {
+        params.set(`${URL_PREFIX}center`, `${round2(cx)},${round2(cy)}`);
+        params.set(`${URL_PREFIX}zoom`, String(round2(Math.log2(zoom))));
+      }
+      const query = params.toString().replace(/%3A/gi, ":").replace(/%2C/gi, ",");
+      history.replaceState(null, "", `${location.pathname}${query ? `?${query}` : ""}${location.hash}`);
+    }, 150);
+  }
+
+  function readUrlView() {
+    const params = new URLSearchParams(location.search);
+    const zoomParam = parseFloat(params.get(`${URL_PREFIX}zoom`));
+    const [cx, cy] = (params.get(`${URL_PREFIX}center`) || "").split(",").map(parseFloat);
+    if (!Number.isFinite(zoomParam) && !(Number.isFinite(cx) && Number.isFinite(cy))) return false;
+    zoom = clamp(Number.isFinite(zoomParam) ? 2 ** zoomParam : 1, MIN_ZOOM, MAX_ZOOM);
+    if (Number.isFinite(cx) && Number.isFinite(cy)) {
+      panX = -((cx - 50) / 100) * size.w * zoom;
+      panY = -((cy - 50) / 100) * size.h * zoom;
+    }
+    applyTransform();
+    return true;
+  }
+
   function applyTransform() {
     const w = mapStage.clientWidth;
     const h = mapStage.clientHeight;
@@ -81,6 +134,7 @@
     mapViewport.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
     zoomInBtn.disabled = zoom >= MAX_ZOOM - 0.001;
     zoomOutBtn.disabled = zoom <= MIN_ZOOM + 0.001;
+    syncUrl();
   }
 
   /* Zooms while keeping the point under (cx, cy) — offsets from the stage centre — fixed. */
@@ -218,7 +272,7 @@
 
   function select(index, { keepView = false, center = false } = {}) {
     selectedIndex = index;
-    history.replaceState(null, "", index === null ? location.pathname + location.search : `#${campaign.chapters[index].id}`);
+    history.replaceState(null, "", `${location.pathname}${location.search}${index === null ? "" : `#${campaign.chapters[index].id}`}`);
     updatePins();
     renderPanel();
     if (center && index !== null && !keepView) centerOn(index);
@@ -275,15 +329,13 @@
   /* ---------- Modes ---------- */
 
   function setPanelVisible(visible) {
-    mapLayout.classList.toggle("with-panel", visible);
+    mapDetails.hidden = !visible;
     panelToggleBtn.setAttribute("aria-expanded", String(visible));
     panelToggleBtn.title = visible ? "Hide map details" : "Show map details";
   }
 
   function setEditMode(enabled) {
     editMode = Boolean(enabled);
-    editModeBtn.textContent = editMode ? "On" : "Off";
-    editModeBtn.classList.toggle("is-on", editMode);
     editModeBtn.setAttribute("aria-pressed", String(editMode));
     mapStage.classList.toggle("editing", editMode);
     $("mapHint").textContent = editMode
@@ -393,6 +445,8 @@
       zoomAt(zoom * ZOOM_STEP);
     } else if (event.key === "-" || event.key === "_") {
       zoomAt(zoom / ZOOM_STEP);
+    } else if (event.key === "?") {
+      setHelpVisible(true);
     } else if (event.key === "0") {
       resetView();
     } else if (event.key === "Escape") {
@@ -429,6 +483,91 @@
     setStatus("Exported. Replace campaign-data.json in the repo and commit it.");
   });
 
+  /* ---------- Save for review ---------- */
+
+  const REPO = "PseudoSyntax/DnD-Tracker-First-Light";
+  const BASE_BRANCH = "main";
+  const DATA_PATH = "campaign-data.json";
+
+  async function github(token, path, options = {}) {
+    const response = await fetch(`https://api.github.com/repos/${REPO}${path}`, {
+      ...options,
+      headers: {
+        Accept: "application/vnd.github+json",
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    });
+    const body = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(body.message || `GitHub returned ${response.status}`);
+    return body;
+  }
+
+  const toBase64 = (text) => {
+    const bytes = new TextEncoder().encode(text);
+    let binary = "";
+    bytes.forEach((byte) => (binary += String.fromCharCode(byte)));
+    return btoa(binary);
+  };
+
+  async function publishWithToken(token, content) {
+    const base = await github(token, `/git/ref/heads/${BASE_BRANCH}`);
+    const branch = `map-edit-${new Date().toISOString().replace(/[^0-9]/g, "").slice(0, 14)}`;
+    await github(token, "/git/refs", { method: "POST", body: JSON.stringify({ ref: `refs/heads/${branch}`, sha: base.object.sha }) });
+    const file = await github(token, `/contents/${DATA_PATH}?ref=${BASE_BRANCH}`);
+    await github(token, `/contents/${DATA_PATH}`, {
+      method: "PUT",
+      body: JSON.stringify({ message: "Update campaign data from map editor", content: toBase64(content), sha: file.sha, branch })
+    });
+    const pr = await github(token, "/pulls", {
+      method: "POST",
+      body: JSON.stringify({ title: "Update campaign data from map editor", head: branch, base: BASE_BRANCH, body: "Edits made in the interactive map editor." })
+    });
+    return pr.html_url;
+  }
+
+  function updateSaveIndicator() {
+    saveBtn.classList.toggle("has-edits", FirstLight.hasEdits());
+  }
+
+  saveBtn.addEventListener("click", () => {
+    const open = savePanel.hidden;
+    savePanel.hidden = !open;
+    saveBtn.setAttribute("aria-expanded", String(open));
+    if (open) {
+      setPanelVisible(true);
+      $("tokenInput").focus();
+    }
+  });
+
+  $("publishBtn").addEventListener("click", async () => {
+    const content = `${JSON.stringify(campaign, null, 2)}\n`;
+    const tokenInput = $("tokenInput");
+    const token = tokenInput.value.trim();
+    const button = $("publishBtn");
+    if (!token) {
+      try {
+        await navigator.clipboard.writeText(content);
+        setStatus("JSON copied. Paste it into the GitHub editor that just opened, then commit.");
+      } catch (error) {
+        setStatus("Could not copy automatically; use Export JSON instead.");
+      }
+      window.open(`https://github.com/${REPO}/edit/${BASE_BRANCH}/${DATA_PATH}`, "_blank", "noopener");
+      return;
+    }
+    button.disabled = true;
+    setStatus("Saving…");
+    try {
+      const url = await publishWithToken(token, content);
+      tokenInput.value = "";
+      setStatusLink("Saved. A pull request is waiting for approval.", url);
+    } catch (error) {
+      setStatus(`Save failed: ${error.message}`);
+    } finally {
+      button.disabled = false;
+    }
+  });
+
   $("importBtn").addEventListener("click", () => importFile.click());
   importFile.addEventListener("change", async () => {
     const file = importFile.files[0];
@@ -460,7 +599,38 @@
   labelsBtn.addEventListener("click", () => {
     mapViewport.classList.toggle("no-labels", !toggleOption(labelsBtn));
   });
-  panelToggleBtn.addEventListener("click", () => setPanelVisible(!mapLayout.classList.contains("with-panel")));
+  panelToggleBtn.addEventListener("click", () => setPanelVisible(mapDetails.hidden));
+  $("panelCloseBtn").addEventListener("click", () => {
+    setPanelVisible(false);
+    panelToggleBtn.focus();
+  });
+
+  function setHelpVisible(visible) {
+    helpPanel.hidden = !visible;
+    helpBtn.setAttribute("aria-expanded", String(visible));
+    if (visible) $("helpCloseBtn").focus();
+  }
+  helpBtn.addEventListener("click", () => setHelpVisible(helpPanel.hidden));
+  $("helpCloseBtn").addEventListener("click", () => {
+    setHelpVisible(false);
+    helpBtn.focus();
+  });
+  helpPanel.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    setHelpVisible(false);
+    helpBtn.focus();
+  });
+
+  if (!document.fullscreenEnabled) fullscreenBtn.hidden = true;
+  fullscreenBtn.addEventListener("click", () => {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else mapApp.requestFullscreen?.().catch(() => setStatus("Full screen is not available here."));
+  });
+  document.addEventListener("fullscreenchange", () => {
+    const on = document.fullscreenElement === mapApp;
+    fullscreenBtn.setAttribute("aria-label", on ? "Exit full screen" : "Enter full screen");
+    fullscreenBtn.title = on ? "Exit full screen" : "Full screen";
+  });
   editModeBtn.addEventListener("click", () => setEditMode(!editMode));
   zoomInBtn.addEventListener("click", () => zoomAt(zoom * ZOOM_STEP));
   zoomOutBtn.addEventListener("click", () => zoomAt(zoom / ZOOM_STEP));
@@ -507,8 +677,9 @@
     layoutViewport();
     setPanelVisible(true);
     setEditMode(false);
+    const hasUrlView = readUrlView();
     const initial = indexFromHash();
-    if (initial !== null) select(initial, { center: true });
+    if (initial !== null) select(initial, { center: !hasUrlView });
     setStatus();
   }
 
