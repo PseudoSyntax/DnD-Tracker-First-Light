@@ -23,14 +23,17 @@ Validate changes with `node scripts/validate-data.mjs`. The *Validate campaign d
 
 ## Interactive map
 
-- Drag to pan; scroll, pinch, or use the **+ / −** buttons to zoom (zoom follows the cursor). **⌂** resets the view.
-- With the map focused: arrow keys pan, `+`/`-` zoom, `0` resets, `Esc` deselects.
-- Markers are numbered by chapter, show the current chapter pulsing, and are joined by a toggleable route line and labels.
-- Select a marker (or use Prev/Next) to read its details; links open the matching journal chapter. `map.html#chapter-id` deep-links to a marker.
+The map UI follows the layout of the [DEFRA interactive-map basic example](https://defra.github.io/interactive-map/examples/basic-map): a full-width map with square white controls on the right, a docked details panel, a bottom-left options bar and an attribution strip.
+
+- Drag to pan; scroll, pinch, or use the **+ / −** buttons to zoom (zoom follows the cursor). The home button resets the view and the corners button toggles full screen.
+- The view is kept in the URL as `?map:center=x,y&map:zoom=z` (centre in percent of the image, zoom as a power of two), so any view can be shared. `#chapter-id` selects a marker.
+- With the map focused: arrow keys pan, `+`/`-` zoom, `0` resets, `?` opens keyboard help, `Esc` deselects.
+- Markers are numbered by chapter (blue = current, green = completed) and joined by a toggleable route line and labels.
+- Select a marker (or use Prev/Next) to read its details; links open the matching journal chapter.
 
 ### Editing the map
 
-1. Switch **Edit mode** on.
+1. Switch **Edit** on (bottom-left).
 2. Drag markers (or select one and use the arrow keys, `Shift` for bigger steps) and edit its text fields.
 3. Edits are saved only in your browser's local storage. **Export JSON** downloads a full `campaign-data.json`.
 4. Replace `campaign-data.json` in the repo and commit it (via pull request if `main` is protected). **Import JSON** loads a file back as local edits; **Discard local edits** reverts to the published data.

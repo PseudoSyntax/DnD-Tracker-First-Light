@@ -1,6 +1,10 @@
 (function () {
   const $ = (id) => document.getElementById(id);
-  const mapLayout = $("mapLayout");
+  const mapApp = $("mapApp");
+  const mapDetails = $("mapDetails");
+  const helpPanel = $("helpPanel");
+  const helpBtn = $("helpBtn");
+  const fullscreenBtn = $("fullscreenBtn");
   const mapStage = $("mapStage");
   const mapViewport = $("mapViewport");
   const mapImage = $("mapImage");
@@ -24,6 +28,7 @@
   const zoomOutBtn = $("zoomOutBtn");
   const importFile = $("importFile");
 
+  const URL_PREFIX = "map:";
   const MIN_ZOOM = 1;
   const MAX_ZOOM = 5;
   const ZOOM_STEP = 1.35;
@@ -46,6 +51,7 @@
 
   const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
   const round1 = (value) => Math.round(value * 10) / 10;
+  const round2 = (value) => Math.round(value * 100) / 100;
 
   function setStatus(message) {
     statusLine.textContent = message || (FirstLight.hasEdits() ? "Local edits active in this browser." : "");
@@ -70,6 +76,41 @@
     applyTransform();
   }
 
+  /* Keeps ?map:center=x,y&map:zoom=z (and #chapter-id) in the address bar so views can be shared. */
+  let urlTimer = null;
+  function syncUrl() {
+    clearTimeout(urlTimer);
+    urlTimer = setTimeout(() => {
+      if (!campaign || !size.w) return;
+      const params = new URLSearchParams(location.search);
+      const cx = 50 - (panX / (size.w * zoom)) * 100;
+      const cy = 50 - (panY / (size.h * zoom)) * 100;
+      if (zoom <= MIN_ZOOM + 0.001 && Math.abs(panX) < 1 && Math.abs(panY) < 1) {
+        params.delete(`${URL_PREFIX}center`);
+        params.delete(`${URL_PREFIX}zoom`);
+      } else {
+        params.set(`${URL_PREFIX}center`, `${round2(cx)},${round2(cy)}`);
+        params.set(`${URL_PREFIX}zoom`, String(round2(Math.log2(zoom))));
+      }
+      const query = params.toString().replace(/%3A/gi, ":").replace(/%2C/gi, ",");
+      history.replaceState(null, "", `${location.pathname}${query ? `?${query}` : ""}${location.hash}`);
+    }, 150);
+  }
+
+  function readUrlView() {
+    const params = new URLSearchParams(location.search);
+    const zoomParam = parseFloat(params.get(`${URL_PREFIX}zoom`));
+    const [cx, cy] = (params.get(`${URL_PREFIX}center`) || "").split(",").map(parseFloat);
+    if (!Number.isFinite(zoomParam) && !(Number.isFinite(cx) && Number.isFinite(cy))) return false;
+    zoom = clamp(Number.isFinite(zoomParam) ? 2 ** zoomParam : 1, MIN_ZOOM, MAX_ZOOM);
+    if (Number.isFinite(cx) && Number.isFinite(cy)) {
+      panX = -((cx - 50) / 100) * size.w * zoom;
+      panY = -((cy - 50) / 100) * size.h * zoom;
+    }
+    applyTransform();
+    return true;
+  }
+
   function applyTransform() {
     const w = mapStage.clientWidth;
     const h = mapStage.clientHeight;
@@ -81,6 +122,7 @@
     mapViewport.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
     zoomInBtn.disabled = zoom >= MAX_ZOOM - 0.001;
     zoomOutBtn.disabled = zoom <= MIN_ZOOM + 0.001;
+    syncUrl();
   }
 
   /* Zooms while keeping the point under (cx, cy) — offsets from the stage centre — fixed. */
@@ -218,7 +260,7 @@
 
   function select(index, { keepView = false, center = false } = {}) {
     selectedIndex = index;
-    history.replaceState(null, "", index === null ? location.pathname + location.search : `#${campaign.chapters[index].id}`);
+    history.replaceState(null, "", `${location.pathname}${location.search}${index === null ? "" : `#${campaign.chapters[index].id}`}`);
     updatePins();
     renderPanel();
     if (center && index !== null && !keepView) centerOn(index);
@@ -275,15 +317,13 @@
   /* ---------- Modes ---------- */
 
   function setPanelVisible(visible) {
-    mapLayout.classList.toggle("with-panel", visible);
+    mapDetails.hidden = !visible;
     panelToggleBtn.setAttribute("aria-expanded", String(visible));
     panelToggleBtn.title = visible ? "Hide map details" : "Show map details";
   }
 
   function setEditMode(enabled) {
     editMode = Boolean(enabled);
-    editModeBtn.textContent = editMode ? "On" : "Off";
-    editModeBtn.classList.toggle("is-on", editMode);
     editModeBtn.setAttribute("aria-pressed", String(editMode));
     mapStage.classList.toggle("editing", editMode);
     $("mapHint").textContent = editMode
@@ -393,6 +433,8 @@
       zoomAt(zoom * ZOOM_STEP);
     } else if (event.key === "-" || event.key === "_") {
       zoomAt(zoom / ZOOM_STEP);
+    } else if (event.key === "?") {
+      setHelpVisible(true);
     } else if (event.key === "0") {
       resetView();
     } else if (event.key === "Escape") {
@@ -460,7 +502,38 @@
   labelsBtn.addEventListener("click", () => {
     mapViewport.classList.toggle("no-labels", !toggleOption(labelsBtn));
   });
-  panelToggleBtn.addEventListener("click", () => setPanelVisible(!mapLayout.classList.contains("with-panel")));
+  panelToggleBtn.addEventListener("click", () => setPanelVisible(mapDetails.hidden));
+  $("panelCloseBtn").addEventListener("click", () => {
+    setPanelVisible(false);
+    panelToggleBtn.focus();
+  });
+
+  function setHelpVisible(visible) {
+    helpPanel.hidden = !visible;
+    helpBtn.setAttribute("aria-expanded", String(visible));
+    if (visible) $("helpCloseBtn").focus();
+  }
+  helpBtn.addEventListener("click", () => setHelpVisible(helpPanel.hidden));
+  $("helpCloseBtn").addEventListener("click", () => {
+    setHelpVisible(false);
+    helpBtn.focus();
+  });
+  helpPanel.addEventListener("keydown", (event) => {
+    if (event.key !== "Escape") return;
+    setHelpVisible(false);
+    helpBtn.focus();
+  });
+
+  if (!document.fullscreenEnabled) fullscreenBtn.hidden = true;
+  fullscreenBtn.addEventListener("click", () => {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else mapApp.requestFullscreen?.().catch(() => setStatus("Full screen is not available here."));
+  });
+  document.addEventListener("fullscreenchange", () => {
+    const on = document.fullscreenElement === mapApp;
+    fullscreenBtn.setAttribute("aria-label", on ? "Exit full screen" : "Enter full screen");
+    fullscreenBtn.title = on ? "Exit full screen" : "Full screen";
+  });
   editModeBtn.addEventListener("click", () => setEditMode(!editMode));
   zoomInBtn.addEventListener("click", () => zoomAt(zoom * ZOOM_STEP));
   zoomOutBtn.addEventListener("click", () => zoomAt(zoom / ZOOM_STEP));
@@ -507,8 +580,9 @@
     layoutViewport();
     setPanelVisible(true);
     setEditMode(false);
+    const hasUrlView = readUrlView();
     const initial = indexFromHash();
-    if (initial !== null) select(initial, { center: true });
+    if (initial !== null) select(initial, { center: !hasUrlView });
     setStatus();
   }
 

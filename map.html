@@ -17,68 +17,101 @@
         <a class="back-link" href="index.html">← Return to Journal</a>
         <h1 class="header-title">Campaign Atlas</h1>
       </header>
-      <main class="map-layout with-panel" id="mapLayout">
-        <div class="map-stage-wrap">
-          <div class="toolbar" role="toolbar" aria-label="Map options">
-            <button id="routeBtn" type="button" aria-pressed="true">Route</button>
-            <button id="labelsBtn" type="button" aria-pressed="true">Labels</button>
-          </div>
-          <button id="panelToggleBtn" class="panel-toggle" type="button" aria-label="Toggle map details" aria-expanded="true">✎</button>
+      <main class="map-main">
+        <div class="im-app" id="mapApp">
           <div
             class="map-stage"
             id="mapStage"
             tabindex="0"
             role="application"
-            aria-label="Interactive campaign map. Drag to pan, scroll or pinch to zoom. With the map focused, use arrow keys to pan and plus or minus to zoom."
+            aria-label="Interactive campaign map. Drag to pan, scroll or pinch to zoom. With the map focused, use arrow keys to pan and plus or minus to zoom. Press question mark for keyboard help."
           >
             <div class="map-viewport" id="mapViewport">
               <img class="map-image" id="mapImage" src="image-1.webp" alt="Campaign map" width="2048" height="1536" draggable="false" decoding="async" />
               <svg class="map-route" id="mapRoute" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><polyline id="routeLine" points="" /></svg>
             </div>
-            <div class="zoom-controls" aria-label="Map zoom controls">
-              <button id="zoomInBtn" type="button" aria-label="Zoom in">+</button>
-              <button id="zoomOutBtn" type="button" aria-label="Zoom out">−</button>
-              <button id="fitBtn" type="button" aria-label="Reset view" title="Reset view">⌂</button>
-            </div>
           </div>
-          <p class="map-hint" id="mapHint">Drag to pan · scroll or pinch to zoom</p>
+
+          <aside class="im-panel" id="mapDetails" aria-label="Waypoint details" aria-live="polite">
+            <button class="im-close" id="panelCloseBtn" type="button" aria-label="Close details">×</button>
+            <p class="panel-kicker" id="panelKicker">Waypoint</p>
+            <div class="chapter-summary" id="viewPanel">
+              <h2 id="map-title">The Known World</h2>
+              <p id="map-summary"></p>
+              <div class="meta-list"><span id="map-location"></span><span id="map-session"></span></div>
+            </div>
+            <form class="editor" id="editorForm" hidden autocomplete="off">
+              <label>Title<input name="title" type="text" /></label>
+              <label>Location<input name="location" type="text" /></label>
+              <label>Session<input name="session" type="text" /></label>
+              <label>Summary<textarea name="summary" rows="4"></textarea></label>
+              <label>Description<textarea name="description" rows="3"></textarea></label>
+              <div class="coords">
+                <label>X (%)<input name="x" type="number" min="0" max="100" step="0.5" /></label>
+                <label>Y (%)<input name="y" type="number" min="0" max="100" step="0.5" /></label>
+              </div>
+            </form>
+            <p class="location-description" id="locationDescription"></p>
+            <div class="nav-row" id="navRow">
+              <button class="btn" id="prevBtn" type="button">← Prev</button>
+              <button class="btn" id="nextBtn" type="button">Next →</button>
+              <a class="btn" id="journalLink" href="index.html" hidden>Open in journal</a>
+            </div>
+            <div id="editTools" hidden>
+              <p class="location-description">Drag a marker, or select one and use the arrow keys (hold Shift for larger steps). Edits stay in this browser until you export them and commit <code>campaign-data.json</code>.</p>
+              <div class="editor-tools">
+                <button class="btn primary" id="exportBtn" type="button">Export JSON</button>
+                <button class="btn" id="importBtn" type="button">Import JSON</button>
+                <button class="btn" id="resetBtn" type="button">Discard local edits</button>
+              </div>
+              <input id="importFile" type="file" accept="application/json,.json" hidden />
+            </div>
+            <p class="status-line" id="statusLine" role="status"></p>
+          </aside>
+
+          <div class="im-controls" role="group" aria-label="Map controls">
+            <button class="im-btn" id="panelToggleBtn" type="button" aria-label="Toggle map details" aria-expanded="true" title="Details">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" /></svg>
+            </button>
+            <div class="im-group">
+              <button class="im-btn" id="zoomInBtn" type="button" aria-label="Zoom in" title="Zoom in">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+              </button>
+              <button class="im-btn" id="zoomOutBtn" type="button" aria-label="Zoom out" title="Zoom out">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14" /></svg>
+              </button>
+            </div>
+            <button class="im-btn" id="fitBtn" type="button" aria-label="Reset view" title="Reset view">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-7 8 7M6 10v10h12V10" /></svg>
+            </button>
+            <button class="im-btn" id="fullscreenBtn" type="button" aria-label="Enter full screen" title="Full screen">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" /></svg>
+            </button>
+            <button class="im-btn" id="helpBtn" type="button" aria-label="Keyboard help" aria-expanded="false" aria-controls="helpPanel" title="Keyboard help">?</button>
+          </div>
+
+          <div class="im-actions" role="toolbar" aria-label="Map options">
+            <button class="im-btn im-btn--label" id="routeBtn" type="button" aria-pressed="true">Route</button>
+            <button class="im-btn im-btn--label" id="labelsBtn" type="button" aria-pressed="true">Labels</button>
+            <button class="im-btn im-btn--label" id="editModeBtn" type="button" aria-pressed="false">Edit</button>
+          </div>
+
+          <div class="im-help" id="helpPanel" role="dialog" aria-label="Keyboard help" hidden>
+            <button class="im-close" id="helpCloseBtn" type="button" aria-label="Close keyboard help">×</button>
+            <h2>Keyboard help</h2>
+            <dl>
+              <dt><kbd>←</kbd> <kbd>↑</kbd> <kbd>→</kbd> <kbd>↓</kbd></dt><dd>Pan the map</dd>
+              <dt><kbd>+</kbd> / <kbd>-</kbd></dt><dd>Zoom in / out</dd>
+              <dt><kbd>0</kbd></dt><dd>Reset view</dd>
+              <dt><kbd>Tab</kbd></dt><dd>Move between markers</dd>
+              <dt><kbd>Enter</kbd></dt><dd>Select a marker</dd>
+              <dt><kbd>Esc</kbd></dt><dd>Deselect or close</dd>
+              <dt><kbd>Shift</kbd> + <kbd>arrows</kbd></dt><dd>Move a selected marker further (edit mode)</dd>
+            </dl>
+          </div>
+
+          <p class="im-attribution" id="mapHint">Drag to pan · scroll or pinch to zoom</p>
         </div>
-        <aside class="map-details" id="mapDetails" aria-live="polite">
-          <p class="panel-kicker" id="panelKicker">Waypoint</p>
-          <div class="chapter-summary" id="viewPanel">
-            <h2 id="map-title">The Known World</h2>
-            <p id="map-summary"></p>
-            <div class="meta-list"><span id="map-location"></span><span id="map-session"></span></div>
-          </div>
-          <form class="editor" id="editorForm" hidden autocomplete="off">
-            <label>Title<input name="title" type="text" /></label>
-            <label>Location<input name="location" type="text" /></label>
-            <label>Session<input name="session" type="text" /></label>
-            <label>Summary<textarea name="summary" rows="4"></textarea></label>
-            <label>Description<textarea name="description" rows="3"></textarea></label>
-            <div class="coords">
-              <label>X (%)<input name="x" type="number" min="0" max="100" step="0.5" /></label>
-              <label>Y (%)<input name="y" type="number" min="0" max="100" step="0.5" /></label>
-            </div>
-          </form>
-          <div class="nav-row" id="navRow">
-            <button class="btn" id="prevBtn" type="button">← Prev</button>
-            <button class="btn" id="nextBtn" type="button">Next →</button>
-            <a class="btn" id="journalLink" href="index.html" hidden>Open in journal</a>
-          </div>
-          <div class="detail-actions"><span class="toggle-label">Edit mode</span><button id="editModeBtn" class="edit-toggle" type="button" aria-pressed="false">Off</button></div>
-          <div id="editTools" hidden>
-            <p class="location-description">Drag a marker, or select one and use the arrow keys (hold Shift for larger steps). Edits stay in this browser until you export them and commit <code>campaign-data.json</code>.</p>
-            <div class="editor-tools">
-              <button class="btn primary" id="exportBtn" type="button">Export JSON</button>
-              <button class="btn" id="importBtn" type="button">Import JSON</button>
-              <button class="btn" id="resetBtn" type="button">Discard local edits</button>
-            </div>
-            <input id="importFile" type="file" accept="application/json,.json" hidden />
-          </div>
-          <p class="status-line" id="statusLine" role="status"></p>
-          <p class="location-description" id="locationDescription"></p>
-        </aside>
       </main>
     </div>
     <script src="data.js"></script>
